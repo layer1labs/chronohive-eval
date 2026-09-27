@@ -26,8 +26,18 @@ cannot be transplanted onto a different TOC text or a different key.
 from __future__ import annotations
 
 import ed25519
+import time
 
 PROTOCOL = "CHRONOHIVE-TOC-ACCEPT/v1"
+
+# Timestamp bounds enforced by verify_token. The signing timestamp is
+# client-supplied, so the server bounds it: tokens dated more than this
+# far in the future are rejected (10 minutes of clock skew is tolerated),
+# and timestamps before 2020-01-01 are rejected as implausible. The
+# authoritative execution time is the server's own accepted_at, recorded
+# at accept time — never the client's timestamp.
+_MAX_FUTURE_SKEW_S = 600
+_MIN_TIMESTAMP = 1577836800  # 2020-01-01T00:00:00Z
 
 _REQUIRED_FIELDS = ("protocol", "toc_sha256", "key_id", "signer_name",
                     "organization", "email", "timestamp", "public_key",
@@ -81,9 +91,18 @@ def verify_token(token: dict, expected_toc_sha256: str,
     if token["key_id"] != expected_key_id:
         return False, "token key_id does not match the authenticated API key"
     try:
+        ts = int(token["timestamp"])
+    except (ValueError, TypeError):
+        return False, "malformed timestamp"
+    now = int(time.time())
+    if ts > now + _MAX_FUTURE_SKEW_S:
+        return False, "timestamp is in the future"
+    if ts < _MIN_TIMESTAMP:
+        return False, "timestamp is implausibly old"
+    try:
         msg = canonical_message(token["toc_sha256"], token["key_id"],
                                 token["signer_name"], token["organization"],
-                                token["email"], int(token["timestamp"]))
+                                token["email"], ts)
         pk = bytes.fromhex(token["public_key"])
         sig = bytes.fromhex(token["signature"])
     except (ValueError, TypeError) as exc:

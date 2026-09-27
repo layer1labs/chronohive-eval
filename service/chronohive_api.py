@@ -262,10 +262,12 @@ class KeyStore:
 
 
 class TocAcceptances:
-    """Persisted TOC acceptances: key_id -> acceptance token.
+    """Persisted TOC acceptances: key_id -> {"token": token, "accepted_at": ts}.
 
     The token's signature was verified at accept time against the pinned
     TOC hash; the store is the record that a given key executed the TOC.
+    accepted_at is the server's own clock at accept time — the authoritative
+    execution time — never the client-supplied token timestamp.
     """
 
     def __init__(self, path: str):
@@ -287,7 +289,10 @@ class TocAcceptances:
 
     def record(self, key_id: str, token: dict) -> None:
         with self._lock:
-            self._accepted[key_id] = token
+            self._accepted[key_id] = {
+                "accepted_at": int(time.time()),
+                "token": token,
+            }
             tmp = self._path + ".tmp"
             with open(tmp, "w") as fh:
                 json.dump(self._accepted, fh, indent=2)

@@ -154,6 +154,31 @@ def check_api_flow() -> None:
         assert status == 403 and body["error"] == "toc_acceptance_rejected", body
         print("forged token -> 403 rejected")
 
+        # future-dated timestamp must be rejected
+        import toc_common as _tc
+        future_sk, _ = ed25519.generate_keypair()
+        future_token = _tc.build_token(
+            toc_sha256=toc["toc_sha256"], key_id="check-01",
+            signer_name="Check Harness", organization="CI",
+            email="ci@example.com",
+            timestamp=int(time.time()) + 3600, secret_key=future_sk)
+        status, body = _http(port, "POST", "/v1/toc/accept", raw_key,
+                             future_token)
+        assert status == 403 and body["error"] == "toc_acceptance_rejected" \
+            and "future" in body["reason"], body
+        print("future-dated token -> 403 rejected")
+
+        # implausibly old timestamp must be rejected
+        old_token = _tc.build_token(
+            toc_sha256=toc["toc_sha256"], key_id="check-01",
+            signer_name="Check Harness", organization="CI",
+            email="ci@example.com",
+            timestamp=1000000000, secret_key=future_sk)
+        status, body = _http(port, "POST", "/v1/toc/accept", raw_key,
+                             old_token)
+        assert status == 403 and body["error"] == "toc_acceptance_rejected", body
+        print("ancient timestamp token -> 403 rejected")
+
         # scenario (default knobs: the verified configuration)
         status, payload = _http(port, "POST", "/v1/scenarios", raw_key,
                                 {"jobs": 8, "ckpt_gb": 200.0,
@@ -189,10 +214,14 @@ def check_api_flow() -> None:
         assert raw_key not in audit and '"key_id": "check-01"' in audit
         print("audit log sane (key_id only, no raw key)")
 
-        # toc acceptance persisted
+        # toc acceptance persisted, with server-side accepted_at
         persisted = json.load(open(os.path.join(tmp, "toc.json")))
         assert "check-01" in persisted
-        print("TOC acceptance persisted")
+        rec = persisted["check-01"]
+        assert isinstance(rec.get("accepted_at"), int), rec
+        assert abs(rec["accepted_at"] - int(time.time())) < 300, rec
+        assert rec["token"]["key_id"] == "check-01", rec
+        print("TOC acceptance persisted (server-side accepted_at)")
 
         # run the shipped example against this server
         step("examples/eval_walkthrough.py")

@@ -165,7 +165,14 @@ Success (`200`):
 ```
 
 Failures: `401` (bad key), `403 {"error": "toc_acceptance_rejected",
-"reason": "..."}` (hash mismatch, key_id mismatch, bad signature).
+"reason": "..."}` — hash mismatch, key_id mismatch, bad signature,
+timestamp in the future (beyond 10 minutes of clock skew), or implausibly
+old timestamp (before 2020-01-01).
+
+The server persists each acceptance as `key_id -> {"token": <the signed
+token>, "accepted_at": <server unix time>}`. `accepted_at` is the server's
+own clock at accept time — the authoritative execution record — never the
+client-supplied token timestamp. The acceptance survives restarts.
 
 ### POST /v1/scenarios
 
