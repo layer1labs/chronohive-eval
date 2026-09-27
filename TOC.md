@@ -123,7 +123,7 @@ kind. Layer1Labs makes no representation that the evaluation simulates
 any specific hardware or production environment.
 
 8.2. For the avoidance of doubt, and as stated in the API documentation:
-the storage backend, the contention model, and the DDN API surface used
+the storage backend, the contention model, and the storage API surface used
 in the evaluation are **simulated**; admission decisions are produced
 by the ChronoHive Runtime kernel. Evaluation numbers are simulation
 outcomes, not hardware measurements.

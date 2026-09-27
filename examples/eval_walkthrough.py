@@ -176,11 +176,11 @@ def main() -> None:
           f"params {fetched['result']['params']['jobs']} jobs)")
 
     _banner("Walkthrough complete")
-    print("Honesty: storage backend, contention model, and DDN API surface "
+    print("Honesty: storage backend, contention model, and storage API surface "
           "are simulated;\n"
           "every grant/refuse above came from the real ChronoHive Runtime "
           "kernel.\n"
-          "These are simulation outcomes, not DDN hardware measurements.")
+          "These are simulation outcomes, not hardware measurements.")
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ RUN useradd -m -u 10001 chronohive
 
 WORKDIR /app
 COPY src/ ./src/
-COPY scripts/demo_ddn_admission.py ./scripts/demo_ddn_admission.py
+COPY scripts/demo_admission.py ./scripts/demo_admission.py
 COPY service/chronohive_api.py ./service/chronohive_api.py
 COPY service/entrypoint.sh ./service/entrypoint.sh
 COPY tools/ ./tools/

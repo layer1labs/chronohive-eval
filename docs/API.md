@@ -6,9 +6,9 @@ This is the complete reference for the ChronoHive evaluation API. It
 covers the hosted endpoint and self-hosted deployments alike.
 
 **Honesty appendix (applies to every endpoint):** the storage backend,
-the incast contention model, and the DDN API surface are **simulated**;
+the incast contention model, and the storage API surface are **simulated**;
 every grant/refuse decision is produced by the **real ChronoHive
-Runtime kernel**. All numbers are simulation outcomes, not DDN hardware
+Runtime kernel**. All numbers are simulation outcomes, not hardware
 measurements. Every response carries `"simulated_backend": true`.
 
 ## Base URLs
@@ -291,7 +291,7 @@ Response (`200`):
 `admitted` maps dataset → granted bandwidth (B/s). `refused` lists
 datasets the kernel declined this window (retry them in a later
 window). `qos` maps dataset → QoS level 0–63, driven by the grant
-decisions on the simulated DDN surface. `kernel` carries the kernel's
+decisions on the simulated storage surface. `kernel` carries the kernel's
 admit/refuse counters.
 
 Admission policy: earliest-deadline-first against the provisioned

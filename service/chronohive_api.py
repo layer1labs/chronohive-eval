@@ -21,8 +21,8 @@ the signature against the pinned TOC hash before activating the key.
 Acceptances persist in CH_TOC_STATE across restarts.
 
 Honesty boundaries (also stamped on every response and the UI):
-  * The storage backend, the incast contention model, and the DDN API
-    surface are SIMULATED. No DDN hardware is involved.
+  * The storage backend, the incast contention model, and the storage API
+    surface are SIMULATED. No storage-vendor hardware is involved.
   * The admission decisions are REAL: every grant/refuse comes from the
     ChronoHive Runtime kernel's capacity discipline, re-evaluated per
     scheduling window. The service never reimplements admission logic;
@@ -64,15 +64,15 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "src"))
 sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
 sys.path.insert(0, os.path.join(REPO_ROOT, "tools"))
 
-import demo_ddn_admission as demo  # noqa: E402
-from demo_ddn_admission import AdmissionCoordinator, SimulatedDDN  # noqa: E402
+import demo_admission as demo  # noqa: E402
+from demo_admission import AdmissionCoordinator, SimulatedStorage  # noqa: E402
 import toc_common  # noqa: E402
 
 VERSION = "1.1.0"
 HONESTY = (
-    "Storage backend, contention model, and DDN API surface are simulated; "
+    "Storage backend, contention model, and storage API surface are simulated; "
     "admission decisions come from the real ChronoHive Runtime kernel; "
-    "results are simulation outcomes, not DDN hardware measurements."
+    "results are simulation outcomes, not hardware measurements."
 )
 
 # --------------------------------------------------------------------------
@@ -106,7 +106,7 @@ def load_toc() -> tuple[str, bytes]:
 TOC_SHA256, TOC_TEXT = load_toc()
 
 # --------------------------------------------------------------------------
-# Scenario runner (mirrors scripts/demo_ddn_admission.py::main payload shape)
+# Scenario runner (mirrors scripts/demo_admission.py::main payload shape)
 # --------------------------------------------------------------------------
 
 _SCENARIO_GLOBALS = ("N_JOBS", "CKPT_BYTES", "PREFETCH_BYTES", "ALPHA",
@@ -188,7 +188,7 @@ def decide_once(now_s: float, window: int, requests: list[dict]) -> dict:
     Each request becomes a PendingTransfer; AdmissionCoordinator.admit_window
     builds a fresh Runtime kernel, admits earliest-deadline-first against
     the provisioned write/read pipes, and drives QoS levels on the
-    (simulated) DDN surface from the grant decisions.
+    (simulated) storage surface from the grant decisions.
     """
     transfers = []
     for r in requests:
@@ -201,8 +201,8 @@ def decide_once(now_s: float, window: int, requests: list[dict]) -> dict:
             deadline=float(deadline) if deadline is not None else math.inf,
         ))
     coord = AdmissionCoordinator()
-    ddn = SimulatedDDN(coord)
-    coord.ddn = ddn
+    storage = SimulatedStorage(coord)
+    coord.storage = storage
     coord.admit_window(now_s, transfers, window)
     return {
         "simulated_backend": True,
@@ -210,7 +210,7 @@ def decide_once(now_s: float, window: int, requests: list[dict]) -> dict:
         "window": window,
         "admitted": dict(coord.admitted_this_window),  # dataset_id -> B/s
         "refused": sorted(coord.refused_this_window),
-        "qos": dict(ddn.qos),  # dataset_id -> 0-63, driven by grant decisions
+        "qos": dict(storage.qos),  # dataset_id -> 0-63, driven by grant decisions
         "kernel": {"admits": coord.admits, "refusals": coord.refusals},
     }
 
@@ -451,7 +451,7 @@ table{border-collapse:collapse;margin-top:12px}td,th{border:1px solid #cbd5e1;pa
 th{background:#f1f5f9}</style></head><body>
 <h2>ChronoHive admission API — eval console</h2>
 <div class="banner"><b>Evaluation build.</b> Storage backend, contention model, and
-DDN API surface are <b>simulated</b>; every grant/refuse decision comes from the
+storage API surface are <b>simulated</b>; every grant/refuse decision comes from the
 real ChronoHive Runtime kernel. Numbers are simulation outcomes, not hardware
 measurements.</div>
 <div class="toc"><b>Step 1 — execute the Terms of Confidentiality.</b>

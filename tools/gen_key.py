@@ -6,10 +6,10 @@ The raw key is printed ONCE for the operator to hand to the evaluator
 the raw key never touches the repo, the image, or any committed file.
 
 Usage:
-  python3 service/gen_key.py --id ddn-eval-01 --days 30 \\
+  python3 service/gen_key.py --id eval-01 --days 30 \\
       --scenarios-per-day 50 --decide-per-min 60 >> api_keys.jsonl
   # then assemble entries into a JSON array at deploy time, or:
-  python3 service/gen_key.py --id ddn-eval-01 --days 30 --emit-array --existing api_keys.json
+  python3 service/gen_key.py --id eval-01 --days 30 --emit-array --existing api_keys.json
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ import time
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--id", required=True, help="key id, e.g. ddn-eval-01")
+    ap.add_argument("--id", required=True, help="key id, e.g. eval-01")
     ap.add_argument("--days", type=float, default=30.0,
                     help="validity in days (default 30)")
     ap.add_argument("--scenarios-per-day", type=int, default=50)

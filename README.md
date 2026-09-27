@@ -4,7 +4,7 @@
 
 Evaluate ChronoHive's storage-admission capability: the eval API serves
 **real admission decisions from the ChronoHive Runtime kernel** against
-a **simulated** storage backend, contention model, and DDN API surface.
+a **simulated** storage backend, contention model, and storage API surface.
 Evaluation numbers are simulation outcomes, not hardware measurements.
 
 ## Quickstart (self-hosted, ~2 minutes)
@@ -59,11 +59,11 @@ the API, and the example are all pure-Python stdlib.
 | `examples/eval_walkthrough.py` | Real end-to-end example: TOC → scenario → live decisions → fetch |
 | `service/` | The eval API (`chronohive_api.py`) + Dockerfile + entrypoint |
 | `src/chronohive/` | Pinned snapshot of the ChronoHive Runtime kernel (admission logic) |
-| `scripts/demo_ddn_admission.py` | Pinned snapshot of the deterministic eval demo |
+| `scripts/demo_admission.py` | Pinned snapshot of the deterministic eval demo |
 | `tools/` | `sign_toc.py` (TOC signing), `gen_key.py` (API key minting), `ed25519.py` + `toc_common.py` (vendored crypto) |
 | `docker-compose.yml` | One-command local deployment |
 
-`src/chronohive/*` and `scripts/demo_ddn_admission.py` are pinned,
+`src/chronohive/*` and `scripts/demo_admission.py` are pinned,
 read-only snapshots vendored from the private ChronoHive repository —
 do not edit them here; changes flow from upstream.
 
