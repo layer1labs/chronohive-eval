@@ -3,22 +3,22 @@
 # Do not edit here - changes flow from the private repo.
 
 #!/usr/bin/env python3
-"""DDN admission demo: coordinated checkpoint/prefetch admission vs greedy baseline.
+"""Storage admission demo: coordinated checkpoint/prefetch admission vs greedy baseline.
 
-Deterministic discrete-event simulation (see docs/demo/DDN_ADMISSION_DEMO.md).
+Deterministic discrete-event simulation (see docs/demo/ADMISSION_DEMO.md).
 
 Honesty boundaries:
-  * The storage backend, the incast contention model, and the DDN API surface
-    are SIMULATED. No DDN hardware is involved.
+  * The storage backend, the incast contention model, and the storage API
+    surface are SIMULATED. No storage-vendor hardware is involved.
   * The admission decisions are REAL: every grant/refuse comes from the
     chronohive Runtime kernel's capacity discipline (admit/start/
     observe_completion), re-evaluated each scheduling window.
-  * Jobs speak the real DDNControl contract (StorageRequest/StorageGrant);
-    the simulated DDN surface implements that protocol.
+  * Jobs speak the real StorageControl contract (StorageRequest/StorageGrant);
+    the simulated storage surface implements that protocol.
 
 Usage:
-  python3 scripts/demo_ddn_admission.py --seed 7 --out build/demo/ddn_admission_results.json
-  python3 scripts/demo_ddn_admission.py --report   # rebuild HTML from the JSON
+  python3 scripts/demo_admission.py --seed 7 --out build/demo/admission_results.json
+  python3 scripts/demo_admission.py --report   # rebuild HTML from the JSON
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 
 from chronohive.io_adapters import (
-    DDNControl,
+    StorageControl,
     ProductInfo,
     StorageGrant,
     StorageRequest,
@@ -43,7 +43,7 @@ from chronohive.io_adapters import (
 from chronohive.runtime import Operation, Plan, Rejected, Runtime
 
 # --------------------------------------------------------------------------
-# Scenario parameters (documented in docs/demo/DDN_ADMISSION_DEMO.md)
+# Scenario parameters (documented in docs/demo/ADMISSION_DEMO.md)
 # --------------------------------------------------------------------------
 
 N_JOBS = 8
@@ -78,14 +78,14 @@ READ_UNITS = 8               # 40 GB/s total read capacity
 
 
 # --------------------------------------------------------------------------
-# Simulated DDN surface (implements the real DDNControl protocol)
+# Simulated storage surface (implements the real StorageControl protocol)
 # --------------------------------------------------------------------------
 
-class SimulatedDDN:
-    """Simulated DDN control surface implementing the DDNControl protocol.
+class SimulatedStorage:
+    """Simulated storage control surface implementing the StorageControl protocol.
 
     product_info/telemetry/request_storage are the contract. apply_qos is the
-    simulated Infinia-style control the coordinator drives from grant decisions.
+    simulated QoS control the coordinator drives from grant decisions.
     Everything here is simulation; labeled as such in product_info.
     """
 
@@ -95,7 +95,7 @@ class SimulatedDDN:
         self._telemetry: list[TelemetryReading] = []
 
     def product_info(self) -> ProductInfo:
-        return ProductInfo(product="DDN EXAScaler", release="sim-7.0")
+        return ProductInfo(product="SimulatedStorage", release="sim-7.0")
 
     def request_storage(self, request: StorageRequest) -> StorageGrant:
         return self._coord.handle_request(request)
@@ -131,7 +131,7 @@ class AdmissionCoordinator:
     and returns StorageGrants. Refused demand retries next window."""
 
     def __init__(self):
-        self.ddn: SimulatedDDN | None = None
+        self.storage: SimulatedStorage | None = None
         self.admitted_this_window: dict[str, float] = {}  # dataset_id -> B/s
         self.refused_this_window: set[str] = set()
         self.admits = 0
@@ -182,17 +182,17 @@ class AdmissionCoordinator:
             except Rejected:
                 self.refused_this_window.add(t.dataset_id)
                 self.refusals += 1
-                assert self.ddn is not None
-                self.ddn.apply_qos(t.dataset_id, 8)
+                assert self.storage is not None
+                self.storage.apply_qos(t.dataset_id, 8)
                 continue
             is_write = t.kind == "checkpoint"
             rate = units[op_id] * (WRITE_UNIT if is_write else READ_UNIT)
             self.admitted_this_window[t.dataset_id] = rate
             self.admits += 1
-            # Drive the simulated DDN QoS control from the grant decision.
+            # Drive the simulated storage QoS control from the grant decision.
             urgent = (t.deadline - now) < 30.0
-            assert self.ddn is not None
-            self.ddn.apply_qos(t.dataset_id, 56 if urgent else 32)
+            assert self.storage is not None
+            self.storage.apply_qos(t.dataset_id, 56 if urgent else 32)
 
     def complete(self, op_dataset: str) -> None:
         self.admitted_this_window.pop(op_dataset, None)
@@ -243,11 +243,11 @@ def run_policy(seed: int, coordinated: bool) -> PolicyResult:
         j.next_slot = 0.0
 
     coord = None
-    ddn = None
+    storage = None
     if coordinated:
         coord = AdmissionCoordinator()
-        ddn = SimulatedDDN(coord)
-        coord.ddn = ddn
+        storage = SimulatedStorage(coord)
+        coord.storage = storage
 
     now = 0.0
     window = 0
@@ -262,10 +262,10 @@ def run_policy(seed: int, coordinated: bool) -> PolicyResult:
         job.transfer = PendingTransfer(dataset_id=ds, job_id=job.job_id,
                                        kind=kind, remaining=size, deadline=deadline)
         if coordinated:
-            # Exercise the real DDNControl contract shape per transfer.
+            # Exercise the real StorageControl contract shape per transfer.
             req = StorageRequest(kind=kind, dataset_id=ds, max_bytes=int(size),
                                  deadline_ns=int(deadline * 1e9) if deadline != math.inf else 2**62)
-            ddn.request_storage(req)
+            storage.request_storage(req)
 
     while not all(j.state == "done" for j in jobs):
         # ---- phase transitions ----
@@ -292,7 +292,7 @@ def run_policy(seed: int, coordinated: bool) -> PolicyResult:
         reads = [j for j in jobs if j.transfer and j.transfer.kind == "prefetch"]
 
         if coordinated:
-            assert coord is not None and ddn is not None
+            assert coord is not None and storage is not None
             pending = [j.transfer for j in jobs if j.transfer]
             coord.admit_window(now, pending, window)
             for job in jobs:
@@ -310,7 +310,7 @@ def run_policy(seed: int, coordinated: bool) -> PolicyResult:
                 if t.remaining <= 0:
                     coord.complete(t.dataset_id)
                     advance(job, now, result, submit)
-            ddn.record_telemetry(int(now * 1e9), {
+            storage.record_telemetry(int(now * 1e9), {
                 "write_gbps": sum(coord.admitted_this_window.get(j.transfer.dataset_id, 0.0) for j in jobs
                                   if j.transfer and j.transfer.kind == "checkpoint") / 1e9,
                 "write_concurrency": float(len(writes)),
@@ -390,7 +390,7 @@ def main() -> None:
     global MISS_PENALTY_S, N_JOBS, CKPT_BYTES, PREFETCH_BYTES, ALPHA
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=7)
-    ap.add_argument("--out", default="build/demo/ddn_admission_results.json")
+    ap.add_argument("--out", default="build/demo/admission_results.json")
     ap.add_argument("--report", action="store_true",
                     help="regenerate the HTML report from --out and exit")
     ap.add_argument("--gpu-price", type=float, default=2.50,
@@ -437,9 +437,9 @@ def main() -> None:
             "write_gbps": WRITE_BW / 1e9, "read_gbps": READ_BW / 1e9,
             "incast_alpha": ALPHA, "miss_penalty_s": MISS_PENALTY_S,
             "window_s": WINDOW_S, "seed": args.seed,
-            "honesty": "storage backend, contention model, and DDN API surface are "
+            "honesty": "storage backend, contention model, and storage API surface are "
                        "simulated; admission decisions come from the real chronohive "
-                       "Runtime kernel; results are simulation outcomes, not DDN "
+                       "Runtime kernel; results are simulation outcomes, not "
                        "hardware measurements.",
         },
         "baseline": {
@@ -496,7 +496,7 @@ def main() -> None:
             "note": "Illustrative model, not a measured saving. Waste fraction "
                     "comes from the simulated storm regime; GPU price, cluster "
                     "size, and miss penalty are inputs. See "
-                    "docs/demo/DDN_VALUE_REPORT.",
+                    "docs/demo/VALUE_REPORT.",
         },
         "waste_fraction_baseline": waste_frac,
         "waste_fraction_admission": adm_waste_frac,
@@ -579,7 +579,7 @@ def write_html(payload: dict, out_path: str) -> None:
     adm_usd = val["annual_waste_admission_usd"] if val else 0.0
     save_usd = val["annual_savings_usd"] if val else 0.0
     html = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<title>ChronoHive x DDN — admission demo</title>
+<title>ChronoHive — admission demo</title>
 <style>body{{font-family:system-ui,sans-serif;max-width:900px;margin:2em auto;padding:0 1em;color:#0f172a}}
 .cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}}
 .card{{border:1px solid #e2e8f0;border-radius:10px;padding:12px}}
@@ -613,7 +613,7 @@ recovery cost. For a <b>{gpus:,}-GPU</b> cluster at <b>${price:.2f}/GPU-hr</b>, 
 <p class="fine">Illustrative model, not a measured saving: the waste fraction comes from the
 simulated storm regime above; GPU price, cluster size, and miss penalty are demo inputs
 (<code>--gpu-price</code>, <code>--cluster-gpus</code>, <code>--miss-penalty</code>).
-Rerun with DDN's own numbers.</p>
+Rerun with the storage vendor's own numbers.</p>
 <h2>Model assumptions &amp; limits</h2>
 <ul class="fine">
 <li><b>What "exposure" means.</b> Each missed checkpoint SLA is charged a modeled
@@ -628,9 +628,9 @@ write path (storage target controllers / metadata).</li>
 rate<sub>k</sub>&nbsp;=&nbsp;(B/k)/(1+&alpha;(k&minus;1)), &alpha;={s['incast_alpha']}, is a
 generalized proxy for fabric/target saturation &mdash; but the storm phenomenon it represents
 is real even on striped systems, where synchronized epoch-end writes hammer the same targets
-and metadata. The curve can be fitted to real telemetry traces from DDN's lab.</li>
-<li><b>Next step: joint pilot.</b> Replace the simulated DDN surface with DDN's actual
-management and telemetry APIs on a reference cluster; replay representative
+and metadata. The curve can be fitted to real telemetry traces from a storage lab.</li>
+<li><b>Next step: lab pilot.</b> Replace the simulated storage surface with the storage
+system's actual management and telemetry APIs on a reference cluster; replay representative
 checkpoint/prefetch traces; measure real GPU idle time, miss rate, and makespan. Only then
 does the money claim become measured rather than modeled.</li>
 </ul>
@@ -639,10 +639,10 @@ does the money claim become measured rather than modeled.</li>
 {svg(payload['timeline_admission'], 'ChronoHive admission: provisioned, no storms')}
 <p class="fine">Kernel decisions this run: {a['kernel_admits']} admits, {a['kernel_refusals']} refusals
 (capacity exceeded, retried next window). Seed {s['seed']}.<br>
-Honesty note: storage backend, incast model (&alpha;={s['incast_alpha']}), and DDN API surface are
+Honesty note: storage backend, incast model (&alpha;={s['incast_alpha']}), and storage API surface are
 <strong>simulated</strong>. Admission grant/refuse decisions come from the real ChronoHive
 <code>Runtime</code> kernel. Numbers are simulation outcomes demonstrating the coordination
-mechanism &mdash; not DDN hardware measurements. No DDN hardware involved.</p>
+mechanism &mdash; not hardware measurements. No storage-vendor hardware involved.</p>
 </body></html>"""
     with open(html_path, "w") as fh:
         fh.write(html)

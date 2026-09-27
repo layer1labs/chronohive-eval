@@ -12,10 +12,10 @@ Flow:
   4. Optionally submit the acceptance token to POST /v1/toc/accept.
 
 Usage:
-  python3 tools/sign_toc.py --toc TOC.md --key-id ddn-eval-01 \\
+  python3 tools/sign_toc.py --toc TOC.md --key-id eval-01 \\
       --name "Jane Doe" --org "Example Corp" --email jane@example.com
   python3 tools/sign_toc.py --api-url https://api.layer1labs.ai --api-key KEY \\
-      --key-id ddn-eval-01 --submit   # prompts for identity, submits
+      --key-id eval-01 --submit   # prompts for identity, submits
 
 The private key is written with mode 600. Keep it: it is your proof of
 execution. The acceptance token itself contains no secrets.

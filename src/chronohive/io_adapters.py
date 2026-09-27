@@ -1,23 +1,26 @@
 # Vendored from layer1labs/chronohive@6f4922e (private).
 # Pinned snapshot of the ChronoHive Runtime kernel / eval demo.
 # Do not edit here - changes flow from the private repo.
+# NOTE (public copy): vendor-specific identifiers from the private source
+# were renamed vendor-neutral in this public copy. The contract shape,
+# simulation math, and behavior are unchanged.
 
-"""I/O adapter interfaces: DDN control and NCCL/CUDA completion.
+"""I/O adapter interfaces: storage control and NCCL/CUDA completion.
 
 STATUS (2026-09-25): the CollectiveCompletion (NCCL/CUDA) contract was
 validated against real backend observations on a 2-GPU isolated testbed
 (see testbed/t013/, evidence at testbed/t013/evidence/).
 
-The DDNControl contract is the integration surface for a prospective
-customer (DDN), not a hardware driver: we are building something DDN
-would be interested in, so no DDN hardware is needed or expected. The
+The StorageControl contract is the integration surface for a storage
+system, not a hardware driver: it is defined against a generic
+storage-control contract, so no vendor hardware is needed or expected. The
 contract is defined here and pinned by mock conformance tests; the
-remaining step is confirming its operations map onto DDN's published
-product APIs.
+remaining step is confirming its operations map onto a storage vendor's
+published product APIs.
 
 Contract summary (see docs/architecture/ADAPTER_INTERFACES.md):
 
-* DDNControl: product/release identification ("confirm actual APIs" as a
+* StorageControl: product/release identification ("confirm actual APIs" as a
   contract), prefetch/checkpoint as admission requests with explicit limits,
   timestamped monotonic telemetry that is observation-only.
 * CollectiveCompletion: rank/world membership, submission-is-not-completion,
@@ -32,7 +35,7 @@ from typing import Mapping, Protocol
 
 @dataclass(frozen=True)
 class ProductInfo:
-    """The DDN product/release an implementation speaks to."""
+    """The storage product/release an implementation speaks to."""
 
     product: str
     release: str
@@ -91,8 +94,8 @@ class TelemetryReading:
             raise ValueError('observed_ns must be a nonnegative integer')
 
 
-class DDNControl(Protocol):
-    """DDN storage control contract (interface only; see module docstring)."""
+class StorageControl(Protocol):
+    """Storage control contract (interface only; see module docstring)."""
 
     def product_info(self) -> ProductInfo: ...
     def request_storage(self, request: StorageRequest) -> StorageGrant: ...

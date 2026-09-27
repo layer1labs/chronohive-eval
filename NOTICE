@@ -6,7 +6,7 @@ CONFIDENTIAL — This package and its contents are provided solely for
 evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
 the ChronoHive Evaluation License (LICENSE). Do not distribute.
 
-The storage backend, contention model, and DDN API surface in this
+The storage backend, contention model, and storage API surface in this
 evaluation are simulated. Admission decisions are produced by the
 ChronoHive Runtime kernel. Evaluation numbers are simulation outcomes,
 not hardware measurements.
