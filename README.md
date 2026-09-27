@@ -62,10 +62,23 @@ the API, and the example are all pure-Python stdlib.
 | `scripts/demo_admission.py` | Pinned snapshot of the deterministic eval demo |
 | `tools/` | `sign_toc.py` (TOC signing), `gen_key.py` (API key minting), `ed25519.py` + `toc_common.py` (vendored crypto) |
 | `docker-compose.yml` | One-command local deployment |
+| `lf/` | Lingua Franca workload sources (canonical: `IoCoordinator.lf`) |
+| `docs/LF_TOOLCHAIN.md` | Optional LF toolchain: IDE → pinned `lfc` → `chronoc` → `.chb` blob |
+| `scripts/compile_lf.sh` | Optional LF→blob compile helper (needs `lfc` + `chronoc`) |
 
 `src/chronohive/*` and `scripts/demo_admission.py` are pinned,
 read-only snapshots vendored from the private ChronoHive repository —
 do not edit them here; changes flow from upstream.
+
+## Lingua Franca workloads (optional)
+
+Workloads can be authored as Lingua Franca programs (`lf/IoCoordinator.lf`,
+SHA-256 pinned in `docs/LF_TOOLCHAIN.md`) and compiled to the binary blob
+the engine executes, via the pinned `lfc` validation gate and the
+`chronoc` compiler: `scripts/compile_lf.sh lf/IoCoordinator.lf -o io.chb`.
+Full authoring setup (IDE extension, Java, Rust) is documented there.
+Evaluation itself needs neither — the API, the worked example, and the
+scenarios all run on stdlib Python plus Docker.
 
 ## Suggested evaluation protocol
 
