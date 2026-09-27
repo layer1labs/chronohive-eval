@@ -1,0 +1,41 @@
+ChronoHive Evaluation License
+
+DRAFT — REQUIRES REVIEW BY LEGAL COUNSEL BEFORE USE.
+
+© 2026 Layer1Labs Silicon Inc. All rights reserved.
+
+1. GRANT. Layer1Labs Silicon Inc. ("Licensor") grants you a limited,
+non-exclusive, non-transferable, revocable license to access, run, and
+study the software in this repository (the "Software") solely to
+evaluate ChronoHive's storage-admission capability (the "Evaluation
+Purpose").
+
+2. RESTRICTIONS. You may not: (a) use the Software in production or in
+any commercial product or service; (b) copy, redistribute, sublicense,
+or publicly host the Software; (c) remove or alter copyright,
+confidentiality, or honesty notices; (d) use the Software for any
+purpose other than the Evaluation Purpose.
+
+3. CONFIDENTIALITY. Your use of the Software is governed by the Terms
+of Confidentiality (TOC.md). You must execute the TOC before the eval
+API will serve you. In case of conflict between this license and the
+executed TOC, the TOC controls.
+
+4. INTELLECTUAL PROPERTY. The Software is licensed, not sold. Licensor
+retains all right, title, and interest in the Software. No rights are
+granted except as expressly stated here.
+
+5. NO WARRANTY. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NON-INFRINGEMENT. THE STORAGE BACKEND, CONTENTION MODEL, AND DDN API
+SURFACE IN THE EVALUATION ARE SIMULATED; RESULTS ARE SIMULATION
+OUTCOMES, NOT HARDWARE MEASUREMENTS.
+
+6. LIMITATION OF LIABILITY. TO THE MAXIMUM EXTENT PERMITTED BY LAW,
+LICENSOR SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM THE SOFTWARE OR ITS USE.
+
+7. TERMINATION. This license terminates automatically if you breach it
+or when your evaluation credentials expire. Sections 3, 4, 5, and 6
+survive termination.
