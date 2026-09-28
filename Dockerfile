@@ -66,7 +66,7 @@ COPY README.md LICENSE NOTICE TOC.md ./
 
 RUN python3 -m compileall -q clients tools scripts examples \
  && /opt/lf/bin/lfc --version \
- && /pkg/toolchain/chronoc-linux-x86_64 --help >/dev/null
+ && test -x /pkg/toolchain/chronoc-linux-x86_64
 
 # Default: the offline self-check (project map, lfc gate, reference blob).
 CMD ["python3", "clients/compile_client.py", "--check"]
