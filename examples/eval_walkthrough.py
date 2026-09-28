@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
+# © 2026 Layer1Labs Silicon Inc. All rights reserved.
+# CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for
+# evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+# the ChronoHive Evaluation License (LICENSE). Do not distribute.
 """ChronoHive eval walkthrough — a REAL end-to-end example.
 
-Runs the complete evaluator flow against the eval API, local or hosted:
+Runs the complete evaluator flow against the hosted eval API:
 
   1. Fetch the canonical TOC and its hash (GET /v1/toc).
   2. Sign the TOC and execute it (POST /v1/toc/accept).
@@ -14,8 +18,8 @@ grant/refuse comes from the real ChronoHive Runtime kernel. The storage
 backend it admits *against* is simulated — see the honesty notes.
 
 Usage:
-  python3 examples/eval_walkthrough.py --api-url http://localhost:8080 \\
-      --api-key <key> --key-id eval-local-01 \\
+  python3 examples/eval_walkthrough.py --api-url https://api.layer1labs.ai \\
+      --api-key <key> --key-id <your-key-id> \\
       --name "Jane Doe" --org "Example Corp" --email jane@example.com
 
 Environment equivalents: CH_EVAL_API_URL, CH_EVAL_API_KEY, CH_EVAL_KEY_ID.

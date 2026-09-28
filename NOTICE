@@ -2,11 +2,21 @@ ChronoHive Evaluation Package — NOTICE
 
 © 2026 Layer1Labs Silicon Inc. All rights reserved.
 
-CONFIDENTIAL — This package and its contents are provided solely for
-evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
-the ChronoHive Evaluation License (LICENSE). Do not distribute.
+*** CONFIDENTIAL — PROPRIETARY ***
 
-The storage backend, contention model, and storage API surface in this
-evaluation are simulated. Admission decisions are produced by the
-ChronoHive Runtime kernel. Evaluation numbers are simulation outcomes,
-not hardware measurements.
+This package and its contents are the confidential, proprietary
+property of Layer1Labs Silicon Inc. They are provided SOLELY for
+evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+the ChronoHive Evaluation License (LICENSE). This is NOT open-source
+software. DO NOT distribute, copy, redistribute, sublicense, or
+publicly host this package or any part of it. Do not remove or alter
+copyright, confidentiality, or honesty notices.
+
+HONESTY NOTES (apply to every evaluation number):
+- The storage backend, contention model, and storage API surface in
+  this evaluation are SIMULATED. No vendor hardware is involved.
+- Admission decisions are produced by the REAL ChronoHive Runtime
+  kernel: every grant/refuse comes from the kernel's capacity
+  discipline.
+- Evaluation numbers are SIMULATION OUTCOMES, not hardware
+  measurements. Do not present them as measured hardware performance.

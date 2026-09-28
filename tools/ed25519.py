@@ -1,3 +1,7 @@
+# © 2026 Layer1Labs Silicon Inc. All rights reserved.
+# CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for
+# evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+# the ChronoHive Evaluation License (LICENSE). Do not distribute.
 """Pure-Python Ed25519 digital signatures (RFC 8032).
 
 Dependency-free on purpose: the TOC acceptance flow must work for any

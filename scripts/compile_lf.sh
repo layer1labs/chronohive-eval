@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# © 2026 Layer1Labs Silicon Inc. All rights reserved.
+# CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for
+# evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+# the ChronoHive Evaluation License (LICENSE). Do not distribute.
+#
 # compile_lf.sh — compile an LF workload to a ChronoHive .chb blob.
 #
 # Portable: resolves the pinned lfc and chronoc from this repo's
@@ -59,4 +64,36 @@ fi
 echo "chronoc: $CHRONOC"
 echo "lfc:     $LFC"
 echo "java:    $JAVA_HOME"
-exec "$CHRONOC" compile "$SRC" --lfc "$LFC" "$@"
+
+# chronoc's lfc validation gate is sensitive to source paths that are not
+# simple relative paths under the working directory, so stage the project
+# through a temp dir and compile with a relative path — the same shape the
+# compile API uses server-side. A relative -o output path is resolved
+# against the caller's cwd before staging.
+STAGE="$(mktemp -d -t ch-lf-compile-XXXXXX)"
+trap 'rm -rf "$STAGE"' EXIT
+ARGS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o)
+      ARGS+=("-o")
+      case "${2:?missing value for -o}" in
+        /*) ARGS+=("$2") ;;
+        *)  ARGS+=("$PWD/$2") ;;
+      esac
+      shift 2
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+SRC_DIR="$(cd "$(dirname "$SRC")" && pwd)"
+cp -r "$SRC_DIR"/. "$STAGE"/
+ENTRYPOINT="$(basename "$SRC")"
+
+(
+  cd "$STAGE"
+  exec "$CHRONOC" compile "$ENTRYPOINT" --lfc "$LFC" "${ARGS[@]}"
+)

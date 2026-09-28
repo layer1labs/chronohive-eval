@@ -1,35 +1,39 @@
 # ChronoHive Evaluation Package
 
-© 2026 Layer1Labs Silicon Inc. All rights reserved. CONFIDENTIAL — do not distribute.
+> © 2026 Layer1Labs Silicon Inc. All rights reserved.
+> **CONFIDENTIAL — PROPRIETARY.** This package and its contents are
+> provided solely for evaluation under the ChronoHive Terms of
+> Confidentiality (`TOC.md`) and the ChronoHive Evaluation License
+> (`LICENSE`). **Do not distribute, copy, or publicly host.**
 
-Evaluate ChronoHive's storage-admission capability: the eval API serves
-**real admission decisions from the ChronoHive Runtime kernel** against
-a **simulated** storage backend, contention model, and storage API surface.
-Evaluation numbers are simulation outcomes, not hardware measurements.
+Evaluate ChronoHive's storage-admission capability. This is a
+**client package**: Python clients and tools that drive the hosted
+ChronoHive eval API — there is no server to self-host in this
+repository. The authoritative eval API lives with the ChronoHive
+service; this package is how evaluators reach it.
 
-## Quickstart (self-hosted, ~2 minutes)
+The API serves **real admission decisions from the ChronoHive Runtime
+kernel** against a **simulated** storage backend, contention model, and
+storage API surface. Evaluation numbers are simulation outcomes, not
+hardware measurements.
 
-```bash
-docker compose up --build
-```
-
-On first boot the container generates an eval API key and prints it to
-its logs — it is shown once:
-
-```bash
-docker compose logs api | grep "RAW API KEY" -A 2
-```
-
-Then run the worked example end to end (it executes the TOC, runs a
-scenario, makes live kernel decisions, and fetches the result back):
+## Quickstart (~5 minutes)
 
 ```bash
-python3 examples/eval_walkthrough.py --api-url http://localhost:8080 \
-    --api-key <the-key> --key-id eval-local-01 \
-    --name "Your Name" --org "Your Company" --email you@company.com
-```
+# 1. Get an API key from your ChronoHive contact, then read the canonical TOC:
+curl https://api.layer1labs.ai/v1/toc
 
-Or open the eval console at http://localhost:8080.
+# 2. Sign and execute the TOC (pure-Python ed25519, no dependencies):
+python3 tools/sign_toc.py --api-url https://api.layer1labs.ai \
+    --key-id <your-key-id> --name "Jane Doe" \
+    --org "Example Corp" --email jane@example.com --submit
+
+# 3. Run the worked example end to end (TOC → scenario → live kernel
+#    decisions → result fetch):
+python3 examples/eval_walkthrough.py --api-url https://api.layer1labs.ai \
+    --api-key "$CHRONOHIVE_API_KEY" --key-id <your-key-id> \
+    --name "Jane Doe" --org "Example Corp" --email jane@example.com
+```
 
 ## The one rule: execute the TOC first
 
@@ -38,86 +42,85 @@ your API key has a verified Terms of Confidentiality acceptance on
 file. The flow:
 
 1. Read the canonical TOC: `GET /v1/toc` (or `TOC.md` in this repo —
-   both carry the same pinned hash).
-2. Sign it: `python3 tools/sign_toc.py --api-url <server> --key-id <id> --submit`
-   (prompts for name/org/email; writes your ed25519 signing key and the
-   acceptance token).
-3. The server verifies your ed25519 signature against the pinned TOC
-   hash and activates your key. Per TOC §5, a verified signature
-   constitutes execution with the same force as a handwritten signature.
+   same text, pinned by SHA-256).
+2. Sign it with `tools/sign_toc.py` (generates an ed25519 keypair,
+   binds the TOC hash to your key id and identity, writes
+   `toc_signing.key` at mode 600 and `toc_acceptance.json`).
+3. Submit the acceptance: `POST /v1/toc/accept`.
+4. Keep `toc_signing.key` — it is your proof of execution. Never commit
+   it anywhere.
 
-No dependencies are needed for any of this — signing, verification,
-the API, and the example are all pure-Python stdlib.
+## What's in this package
 
-## What's in this repo
-
-| Path | What |
-|------|------|
-| `TOC.md` | Terms of Confidentiality (DRAFT — pending counsel review) |
-| `LICENSE` | ChronoHive Evaluation License (DRAFT — pending counsel review) |
-| `docs/API.md` | Complete API reference — every endpoint, schema, error, quota |
-| `examples/eval_walkthrough.py` | Real end-to-end example: TOC → scenario → live decisions → fetch |
-| `service/` | The eval API (`chronohive_api.py`) + Dockerfile + entrypoint |
-| `src/chronohive/` | Pinned snapshot of the ChronoHive Runtime kernel (admission logic) |
-| `scripts/demo_admission.py` | Pinned snapshot of the deterministic eval demo |
-| `tools/` | `sign_toc.py` (TOC signing), `gen_key.py` (API key minting), `ed25519.py` + `toc_common.py` (vendored crypto) |
-| `docker-compose.yml` | One-command local deployment |
-| `lf/` | Lingua Franca workload sources (canonical: `IoCoordinator.lf`) |
-| `toolchain/` | Pinned LF toolchain: vendored `chronoc` v0.1.0 + `lfc` v0.13.0 fetch (SHA-256 verified) |
-| `docs/LF_TOOLCHAIN.md` | Optional LF toolchain: IDE → pinned `lfc` → `chronoc` → `.chb` blob |
-| `scripts/compile_lf.sh` | Optional LF→blob compile helper (self-contained; needs only a JVM) |
+| Path | What it is |
+|---|---|
+| `clients/compile_client.py` | Complete-project LF→blob compile client: hosted API mode, local pinned-toolchain mode, and an offline `--check` self-test |
+| `examples/eval_walkthrough.py` | Worked end-to-end admission example (TOC → scenario → live kernel decisions) |
+| `tools/sign_toc.py` | TOC signing and submission tool (pure-Python ed25519) |
+| `tools/toc_common.py`, `tools/ed25519.py` | Acceptance-token format and RFC 8032 ed25519 implementation |
+| `lf/` | Complete LF workload project (`IoCoordinator.lf`), editor config, and a checked-in reference blob for offline verification |
+| `toolchain/` | Pinned LF toolchain: vendored `chronoc` v0.1.0 binary + `lfc` v0.13.0 fetch (SHA-256 verified) |
+| `scripts/compile_lf.sh` | LF→blob compile helper (self-contained; needs only a JVM for `lfc`) |
 | `scripts/demo-lf.sh` | Guided LF tour: source → validate → compile → blob provenance |
 | `scripts/fetch-lfc.sh` | One-time pinned-`lfc` download with hash verification |
+| `docs/API.md` | Full hosted API reference, including the `/v1/lf/compile` contract |
+| `docs/LF_TOOLCHAIN.md` | Toolchain pins and the LF→blob pipeline |
+| `TOC.md` | Terms of Confidentiality (pinned by SHA-256) |
+## Compiling an LF workload to a blob
 
-`src/chronohive/*` and `scripts/demo_admission.py` are pinned,
-read-only snapshots vendored from the private ChronoHive repository —
-do not edit them here; changes flow from upstream.
+Lingua Franca workloads compile to the `.chb` v1 artifact the
+ChronoHive engine executes. The compile takes the **complete LF
+project** — every `.lf` file as a file map — plus an entrypoint,
+parameters, and capacities:
 
-## Lingua Franca workloads (optional)
+```bash
+python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
+    --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.chb
+```
 
-Workloads can be authored as Lingua Franca programs (`lf/IoCoordinator.lf`,
-SHA-256 pinned in `docs/LF_TOOLCHAIN.md`) and compiled to the binary blob
-the engine executes, via the pinned `lfc` validation gate and the
-`chronoc` compiler. Run the guided tour:
+The hosted compile API requires a key with a **compile license** (issued
+by the operator) on top of TOC execution. It enforces the same contract
+the client does: ≤64 files, ≤512 KiB per file, ≤2 MiB aggregate,
+relative `.lf` paths only, 120 s compile timeout.
+
+For a guided tour of the same chain (source → pinned-`lfc` validation →
+`chronoc` lowering → blob provenance), run:
 
 ```sh
 scripts/demo-lf.sh
 ```
 
-or compile directly (self-contained — needs only a JVM for `lfc`):
+or compile the checked-in project directly with the vendored toolchain
+(self-contained — needs only a JVM for `lfc`):
 
 ```sh
-scripts/compile_lf.sh lf/IoCoordinator.lf -o io.chb
+scripts/compile_lf.sh lf/IoCoordinator.lf -o io.chb --capacity storage_bw=100
 ```
 
-Full authoring setup (IDE extension, Java, Rust) is documented in
+Full authoring setup (IDE extension, Java) is documented in
 `docs/LF_TOOLCHAIN.md`. Evaluation itself needs neither — the API, the
-worked example, and the scenarios all run on stdlib Python plus Docker.
+worked example, and the scenarios all run on stdlib Python.
 
-## Suggested evaluation protocol
+Compiling is optional for evaluation — the admission API needs neither
+`lfc` nor `chronoc`. The local mode (`--local`) and the offline check
+(`--check`, which verifies the checked-in reference blob
+byte-structure without any toolchain) cover evaluators who work
+air-gapped.
 
-1. Run `examples/eval_walkthrough.py` to confirm the full loop works.
-2. Sweep `POST /v1/scenarios` across jobs (4–32), checkpoint sizes
-   (50–1000 GB), and `incast_alpha` (0–1); record stall reduction and
-   the pass/fail verdict per seed. Seeds are deterministic — reruns
-   reproduce exactly.
-3. Drive `POST /v1/admission/decide` with your own request mixes
-   (deadlined checkpoints vs. best-effort prefetches) and observe
-   grant/refuse/QoS behavior per window.
-4. Compare against your baseline: the scenario result always includes
-   the no-admission baseline for the same seed.
+## Verifying the package
 
-## Hosted evaluation
+```bash
+python3 scripts/check.py
+```
 
-If Layer1Labs issued you a hosted API key (`https://api.layer1labs.ai`),
-the same flow applies: execute the TOC against the hosted URL with
-your issued key id, then evaluate. Your key carries its own quotas and
-expiry.
+The gate byte-compiles every Python file, reproduces the RFC 8032
+ed25519 test vectors, runs the branding sweep (vendor-neutrality, no
+internal markers), and runs the compile client's `--check` (LF project
+map, pinned `lfc` validation gate, reference-blob verification).
 
-## Notices
+## License and confidentiality
 
-- DRAFT legal documents: `TOC.md` and `LICENSE` are templates pending
-  counsel review. Do not treat them as final legal instruments.
-- Known limitations: scenario results and quota counters reset on
-  server restart; API keys load at startup only; `/` and `/v1/health`
-  are unauthenticated.
+This package is **proprietary and confidential**. Your rights are
+limited to evaluation under `TOC.md` and `LICENSE` — no production
+use, no redistribution, no public hosting. See `NOTICE` for the honesty
+notes that apply to every evaluation number.

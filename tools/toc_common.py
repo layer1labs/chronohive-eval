@@ -1,3 +1,7 @@
+# © 2026 Layer1Labs Silicon Inc. All rights reserved.
+# CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for
+# evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+# the ChronoHive Evaluation License (LICENSE). Do not distribute.
 """TOC acceptance token: the canonical message format shared by the
 signing tool (tools/sign_toc.py) and the API server.
 
