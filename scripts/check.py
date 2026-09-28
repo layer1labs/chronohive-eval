@@ -8,10 +8,18 @@
   1. Byte-compile every Python file in the repo.
   2. Ed25519: reproduce the RFC 8032 test vectors byte-identically,
      plus round-trip and tamper-rejection checks.
-  3. Branding sweep: no vendor mentions, no RCPH, no TODO/FIXME/HACK
-     markers, no internal engineering notes on public surfaces.
-  4. Compile client --check: complete LF project file map, pinned lfc
+  3. Forbidden-name sweep: the package is vendor-neutral and never
+     names internal programs. The forbidden names are assembled from
+     character codes so they never appear as literals in this file.
+  4. Header sweep: every shipped source, script, and customer-facing
+     document carries the proprietary/confidential banner.
+  5. Compile client --check: complete LF project file map, pinned lfc
      validation gate, request-schema check, reference-blob verification.
+  6. Negative path-validation tests for the compile client.
+  7. Tracked-artifact rejection: no build outputs, key material, or
+     removed server snapshots in git.
+  8. Secret-hygiene check: no secret-like artifacts on disk (contents
+     are never printed).
 
 Needs the pinned lfc on PATH or $LFC (a JRE for lfc via $JAVA_HOME);
 CI installs it (see .github/workflows/ci.yml).
@@ -30,11 +38,17 @@ import sys
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO_ROOT, "tools"))
+sys.path.insert(0, os.path.join(REPO_ROOT, "clients"))
 
-# Vendor-neutrality + public-surface hygiene. (?i) applied per pattern.
+# Forbidden names, assembled from character codes so the literals never
+# appear in any public file (including this one).
+_FORBIDDEN = [
+    "".join(chr(c) for c in (100, 100, 110)),
+    "".join(chr(c) for c in (114, 99, 112, 104)),
+]
 BANNED_PATTERNS = [
-    r"\bddn\b",            # vendor name — the package is vendor-neutral
-    r"\brcph\b",           # never public
+    r"\b" + re.escape(name) + r"\b" for name in _FORBIDDEN
+] + [
     r"\bTODO\b",
     r"\bFIXME\b",
     r"\bHACK\b",
@@ -45,9 +59,45 @@ BANNED_PATTERNS = [
 SWEEP_EXTENSIONS = {".py", ".md", ".sh", ".lf", ".json", ".yml", ".yaml",
                     ""}  # "" covers extensionless files like Dockerfile
 SWEEP_SKIP_DIRS = {".git", "__pycache__", ".vscode"}
-# This script itself is skipped: it literally defines the banned patterns
-# it enforces (the definitions are the enforcement mechanism, not violations).
+# This script itself is skipped: it assembles the forbidden patterns it
+# enforces (the assembly is the enforcement mechanism, not a violation).
 SWEEP_SKIP_FILES = {"rfc8032_test_vectors.json", "check.py"}
+
+# Proprietary/confidential banner markers. Every shipped text source in
+# these extensions must contain one of them.
+HEADER_MARKERS = (
+    "© 2026 Layer1Labs Silicon Inc.",
+    "Layer1Labs Silicon Inc. All rights reserved",
+)
+HEADER_EXTENSIONS = {".py", ".sh", ".lf", ".yml", ".yaml"}
+HEADER_FILES = {"Dockerfile"}  # extensionless files that need the banner
+# Customer-facing markdown that must carry the banner.
+HEADER_MD_FILES = {
+    "README.md", "LICENSE", "NOTICE", "TOC.md",
+    "docs/API.md", "docs/LF_TOOLCHAIN.md", "docs/EVALUATION.md",
+    "lf/README.md", "toolchain/README.md",
+}
+
+# Server-side / snapshot artifacts removed from the public package. None
+# may reappear in the tree or in git.
+REMOVED_ARTIFACTS = (
+    "docker-compose.yml",
+    "service/Dockerfile",
+    "service/chronohive_api.py",
+    "service/entrypoint.sh",
+    "src/chronohive/__init__.py",
+    "src/chronohive/io_adapters.py",
+    "src/chronohive/runtime.py",
+    "scripts/demo_admission.py",
+    "tools/gen_key.py",
+)
+
+# Never tracked, never left on disk.
+SECRET_LIKE_NAMES = (
+    "toc_signing.key",
+    "toc_acceptance.json",
+    ".env",
+)
 
 
 def step(name: str) -> None:
@@ -85,10 +135,7 @@ def check_ed25519() -> None:
           "round-trip + tamper rejection OK")
 
 
-def check_branding() -> None:
-    step("branding sweep")
-    patterns = [(re.compile(p, re.IGNORECASE), p) for p in BANNED_PATTERNS]
-    violations: list[str] = []
+def _iter_sweep_files():
     for root, dirs, names in os.walk(REPO_ROOT):
         dirs[:] = [d for d in dirs if d not in SWEEP_SKIP_DIRS]
         for name in sorted(names):
@@ -97,21 +144,53 @@ def check_branding() -> None:
             _stem, ext = os.path.splitext(name)
             if ext not in SWEEP_EXTENSIONS:
                 continue
-            path = os.path.join(root, name)
-            try:
-                with open(path, "r", encoding="utf-8") as fh:
-                    text = fh.read()
-            except UnicodeDecodeError:
-                continue
-            for rx, pattern in patterns:
-                for match in rx.finditer(text):
-                    line = text.count("\n", 0, match.start()) + 1
-                    rel = os.path.relpath(path, REPO_ROOT)
-                    violations.append(f"{rel}:{line}: /{pattern}/")
+            yield os.path.join(root, name)
+
+
+def check_branding() -> None:
+    step("forbidden-name sweep")
+    patterns = [(re.compile(p, re.IGNORECASE), f"pattern#{i}")
+                for i, p in enumerate(BANNED_PATTERNS)]
+    violations: list[str] = []
+    for path in _iter_sweep_files():
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                text = fh.read()
+        except UnicodeDecodeError:
+            continue
+        for rx, label in patterns:
+            for match in rx.finditer(text):
+                line = text.count("\n", 0, match.start()) + 1
+                rel = os.path.relpath(path, REPO_ROOT)
+                violations.append(f"{rel}:{line}: {label}")
     if violations:
-        raise RuntimeError("branding sweep found banned content:\n  " +
+        raise RuntimeError("forbidden-name sweep found banned content:\n  " +
                            "\n  ".join(violations))
-    print("no vendor mentions, no RCPH, no TODO/FIXME/HACK markers")
+    print("forbidden-name sweep clean")
+
+
+def check_headers() -> None:
+    step("header sweep")
+    missing: list[str] = []
+    for path in _iter_sweep_files():
+        rel = os.path.relpath(path, REPO_ROOT)
+        _stem, ext = os.path.splitext(os.path.basename(path))
+        name = os.path.basename(path)
+        needs = (ext in HEADER_EXTENSIONS or name in HEADER_FILES
+                 or rel in HEADER_MD_FILES)
+        if not needs:
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                head = fh.read(4096)
+        except UnicodeDecodeError:
+            continue
+        if not any(marker in head for marker in HEADER_MARKERS):
+            missing.append(rel)
+    if missing:
+        raise RuntimeError("files missing the proprietary/confidential "
+                           "banner:\n  " + "\n  ".join(missing))
+    print("proprietary/confidential banners present")
 
 
 def check_compile_client() -> None:
@@ -125,12 +204,80 @@ def check_compile_client() -> None:
                            proc.stderr[-3000:])
 
 
+def check_negative_paths() -> None:
+    step("compile client negative path validation")
+    import compile_client
+    bad = [
+        "", "/abs/path.lf", "~/home.lf", "../escape.lf", "a/../../b.lf",
+        "back\\slash.lf", "noext", "prog.txt", "sub/../other.lf",
+        "x" * 300 + ".lf",
+    ]
+    for path in bad:
+        err = compile_client.project_path_error(path)
+        assert err, f"path {path!r} was accepted but must be rejected"
+    good = ["main.lf", "sub/dir.lf", "a-b_c.lf"]
+    for path in good:
+        err = compile_client.project_path_error(path)
+        assert err is None, f"path {path!r} rejected: {err}"
+    print(f"{len(bad)} hostile paths rejected, {len(good)} valid paths kept")
+
+
+def _git_tracked() -> set[str]:
+    proc = subprocess.run(
+        ["git", "ls-files"], cwd=REPO_ROOT,
+        capture_output=True, text=True, timeout=60)
+    if proc.returncode != 0:
+        return set()
+    return set(proc.stdout.splitlines())
+
+
+def check_tracked_artifacts() -> None:
+    step("tracked-artifact rejection")
+    tracked = _git_tracked()
+    bad: list[str] = []
+    for path in tracked:
+        base = os.path.basename(path)
+        if ("__pycache__" in path or path.endswith(".pyc")
+                or base in SECRET_LIKE_NAMES):
+            bad.append(path)
+    for removed in REMOVED_ARTIFACTS:
+        if removed in tracked:
+            bad.append(removed)
+        if os.path.exists(os.path.join(REPO_ROOT, removed)):
+            bad.append(removed + " (on disk)")
+    if bad:
+        raise RuntimeError("forbidden artifacts present:\n  " +
+                           "\n  ".join(sorted(bad)))
+    print("no build outputs, key material, or removed snapshots tracked")
+
+
+def check_secret_hygiene() -> None:
+    step("secret hygiene")
+    found: list[str] = []
+    for root, _dirs, names in os.walk(REPO_ROOT):
+        if ".git" in root.split(os.sep):
+            continue
+        for name in names:
+            if name in SECRET_LIKE_NAMES:
+                found.append(os.path.relpath(
+                    os.path.join(root, name), REPO_ROOT))
+    if found:
+        # Names only — contents are never read or printed.
+        raise RuntimeError("secret-like artifacts on disk:\n  " +
+                           "\n  ".join(sorted(found)))
+    print("no secret-like artifacts on disk")
+
+
 def main() -> None:
     check_compile()
     check_ed25519()
     check_branding()
+    check_headers()
     check_compile_client()
-    print("\nALL CHECKS PASSED")
+    check_negative_paths()
+    check_tracked_artifacts()
+    check_secret_hygiene()
+    print("\n\nALL CHECKS PASSED")
 
 
 if __name__ == "__main__":

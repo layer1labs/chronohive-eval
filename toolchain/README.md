@@ -1,3 +1,8 @@
+<!-- © 2026 Layer1Labs Silicon Inc. All rights reserved. -->
+<!-- CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for -->
+<!-- evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and -->
+<!-- the ChronoHive Evaluation License (LICENSE). Do not distribute. -->
+
 # toolchain/
 
 Pinned, self-contained build tools for the LF evaluation workloads.

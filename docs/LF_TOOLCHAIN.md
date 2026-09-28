@@ -67,7 +67,8 @@ python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
 # 2. Local pinned toolchain (lfc + chronoc on PATH, or LFC/CHRONOC/JAVA_HOME):
 python3 clients/compile_client.py --local --capacity storage_bw=100 -o /tmp/io.chb
 
-# 3. Offline self-check — no network, no toolchain:
+# 3. Offline self-check — no network, no chronoc
+#    (pinned lfc + a JRE are still required):
 python3 clients/compile_client.py --check
 ```
 

@@ -44,7 +44,8 @@ python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
 python3 clients/compile_client.py --local --capacity storage_bw=100 -o /tmp/io.chb
 
 # offline self-check: validates the project map, the pinned lfc gate,
-# and the checked-in reference blob — no network, no toolchain
+# and the checked-in reference blob — no network, no chronoc
+# (pinned lfc + a JRE are still required)
 python3 clients/compile_client.py --check
 ```
 

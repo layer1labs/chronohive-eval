@@ -104,8 +104,8 @@ worked example, and the scenarios all run on stdlib Python.
 Compiling is optional for evaluation — the admission API needs neither
 `lfc` nor `chronoc`. The local mode (`--local`) and the offline check
 (`--check`, which verifies the checked-in reference blob
-byte-structure without any toolchain) cover evaluators who work
-air-gapped.
+byte-structure with no network and no `chronoc` — pinned `lfc` +
+a JRE are still required) cover evaluators who work air-gapped.
 
 ## Verifying the package
 
