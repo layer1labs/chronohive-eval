@@ -63,8 +63,11 @@ the API, and the example are all pure-Python stdlib.
 | `tools/` | `sign_toc.py` (TOC signing), `gen_key.py` (API key minting), `ed25519.py` + `toc_common.py` (vendored crypto) |
 | `docker-compose.yml` | One-command local deployment |
 | `lf/` | Lingua Franca workload sources (canonical: `IoCoordinator.lf`) |
+| `toolchain/` | Pinned LF toolchain: vendored `chronoc` v0.1.0 + `lfc` v0.13.0 fetch (SHA-256 verified) |
 | `docs/LF_TOOLCHAIN.md` | Optional LF toolchain: IDE → pinned `lfc` → `chronoc` → `.chb` blob |
-| `scripts/compile_lf.sh` | Optional LF→blob compile helper (needs `lfc` + `chronoc`) |
+| `scripts/compile_lf.sh` | Optional LF→blob compile helper (self-contained; needs only a JVM) |
+| `scripts/demo-lf.sh` | Guided LF tour: source → validate → compile → blob provenance |
+| `scripts/fetch-lfc.sh` | One-time pinned-`lfc` download with hash verification |
 
 `src/chronohive/*` and `scripts/demo_admission.py` are pinned,
 read-only snapshots vendored from the private ChronoHive repository —
@@ -75,10 +78,21 @@ do not edit them here; changes flow from upstream.
 Workloads can be authored as Lingua Franca programs (`lf/IoCoordinator.lf`,
 SHA-256 pinned in `docs/LF_TOOLCHAIN.md`) and compiled to the binary blob
 the engine executes, via the pinned `lfc` validation gate and the
-`chronoc` compiler: `scripts/compile_lf.sh lf/IoCoordinator.lf -o io.chb`.
-Full authoring setup (IDE extension, Java, Rust) is documented there.
-Evaluation itself needs neither — the API, the worked example, and the
-scenarios all run on stdlib Python plus Docker.
+`chronoc` compiler. Run the guided tour:
+
+```sh
+scripts/demo-lf.sh
+```
+
+or compile directly (self-contained — needs only a JVM for `lfc`):
+
+```sh
+scripts/compile_lf.sh lf/IoCoordinator.lf -o io.chb
+```
+
+Full authoring setup (IDE extension, Java, Rust) is documented in
+`docs/LF_TOOLCHAIN.md`. Evaluation itself needs neither — the API, the
+worked example, and the scenarios all run on stdlib Python plus Docker.
 
 ## Suggested evaluation protocol
 
