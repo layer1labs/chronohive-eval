@@ -18,7 +18,7 @@
 #       python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
 #           --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.chb
 
-FROM python:3.12-slim-bookworm
+FROM docker.io/library/python:3.12-slim-trixie@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b
 
 # Pinned toolchain assets (verified by SHA-256 at build time).
 ARG LFC_VERSION=0.13.0
