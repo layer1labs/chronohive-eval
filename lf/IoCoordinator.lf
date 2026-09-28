@@ -1,4 +1,8 @@
-// IoCoordinator.lf — ChronoHive demo workload (chronoc subset v1).
+// IoCoordinator.lf — ChronoHive evaluation workload (chronoc subset v1).
+// © 2026 Layer1Labs Silicon Inc. All rights reserved.
+// CONFIDENTIAL — PROPRIETARY. Licensed solely for evaluation under the
+// ChronoHive Terms of Confidentiality (TOC.md) and the ChronoHive
+// Evaluation License (LICENSE). Do not distribute.
 //
 // A timed training loop (Trainer) drives storage I/O through two
 // single-purpose reactors: CheckpointIO admits periodic checkpoints and

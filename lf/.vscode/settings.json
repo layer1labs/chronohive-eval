@@ -1,0 +1,15 @@
+{
+  // LF project settings — ChronoHive evaluation workload.
+  // © 2026 Layer1Labs Silicon Inc. All rights reserved. CONFIDENTIAL — proprietary.
+  "files.associations": {
+    "*.lf": "lingua-franca"
+  },
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.trimAutoWhitespace": true,
+  "editor.formatOnSave": false,
+  "[lingua-franca]": {
+    "editor.tabSize": 4,
+    "editor.wordWrap": "off"
+  }
+}

@@ -3,3 +3,5 @@ __pycache__/
 .toc_signing/
 # Fetched (not vendored) pinned lfc — recreated by scripts/fetch-lfc.sh.
 toolchain/lf-cli-*/
+toc_signing.key
+toc_acceptance.json

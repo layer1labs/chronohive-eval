@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# © 2026 Layer1Labs Silicon Inc. All rights reserved.
+# CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for
+# evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+# the ChronoHive Evaluation License (LICENSE). Do not distribute.
 # fetch-lfc.sh — download the pinned lfc and verify its SHA-256.
 #
 # Idempotent: skips the download when the pinned lfc is already present

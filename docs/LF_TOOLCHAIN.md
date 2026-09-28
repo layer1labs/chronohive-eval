@@ -1,22 +1,25 @@
 # Lingua Franca toolchain — authoring and compiling evaluation workloads
 
-© 2026 Layer1Labs Silicon Inc. All rights reserved. CONFIDENTIAL — do not distribute.
+> © 2026 Layer1Labs Silicon Inc. All rights reserved.
+> **CONFIDENTIAL — PROPRIETARY.** Licensed solely for evaluation under
+> the ChronoHive Terms of Confidentiality (`../TOC.md`) and the
+> ChronoHive Evaluation License (`../LICENSE`). **Do not distribute.**
 
 Workloads evaluated through the API can be authored as Lingua Franca
 programs and compiled to the binary blob (`.chb`) the ChronoHive engine
 executes. This is optional: the API and the worked example need nothing
-beyond a Python 3 interpreter and Docker. This doc is for evaluators who
-want to define their own workloads in LF.
+beyond a Python 3 interpreter. This doc is for evaluators who want to
+define their own workloads in LF.
 
 ## The chain
 
 ```mermaid
 flowchart TB
     IDE["LF IDE — author .lf<br/>lf-lang.vscode-lingua-franca<br/>validation as you type (advisory)"]
-    LFC["Pinned lfc v0.13.0 — authoritative gate<br/>lfc -n -q -o tmpdir; generated code discarded"]
+    LFC["Pinned lfc v0.13.0 — authoritative gate<br/>lfc -n -q; generated code discarded"]
     CHC["chronoc (Rust)<br/>accepted subset → .chb v1 blob<br/>source SHA-256 + lfc/chronoc provenance"]
     ENG["Engine — blob executor + Runtime kernel<br/>admit / start / observe_completion"]
-    API["Eval API<br/>/v1/scenarios · /v1/admission/decide"]
+    API["Eval API<br/>/v1/scenarios · /v1/admission/decide · /v1/lf/compile"]
 
     IDE --> LFC --> CHC --> ENG --> API
 ```
@@ -24,8 +27,8 @@ flowchart TB
 Rules of the chain:
 
 1. **Author** in the LF IDE (extension `lf-lang.vscode-lingua-franca`,
-   needs Java 17+ for its language server). In-editor validation is
-   advisory.
+   needs Java 17+ for its language server; `.vscode/` in `lf/` is
+   preconfigured). In-editor validation is advisory.
 2. **Validate** with the pinned real `lfc` v0.13.0 — the sole authority
    on what is valid LF. Anything `lfc` rejects is never compiled.
 3. **Lower** with `chronoc`: it consumes only `lfc`-accepted sources in
@@ -36,17 +39,8 @@ Rules of the chain:
    through the real `Runtime` kernel. No generated LF code runs anywhere
    in this path; there is no LF runtime in the execution path.
 5. **Evaluate**: the workload shapes (train / checkpoint / prefetch)
-   parameterize API scenarios (`jobs`, `ckpt_gb`, `prefetch_gb`, …).
-
-## The LF source in this package
-
-`lf/IoCoordinator.lf` — the canonical workload: a timed training loop
-(`Trainer`) driving periodic checkpoints (`CheckpointIO`) and read-ahead
-(`PrefetchIO`).
-
-- SHA-256:
-  `0c33d636a19af7ae434940b2c29c56817ea334fa268620306bda67b3fa13b5a8`
-- Verify: `sha256sum lf/IoCoordinator.lf`
+   parameterize API scenarios (`jobs`, `ckpt_gb`, `prefetch_gb`, …), and
+   a compiled blob is the deployment artifact the engine admits against.
 
 ## Guided demo
 
@@ -62,6 +56,22 @@ scripts/demo-lf.sh
 
 ## Compiling
 
+The canonical path is the compile client, which takes the **complete
+project** (every `.lf` file as a file map) and supports three modes:
+
+```sh
+# 1. Hosted compile API (needs a TOC-executed key with a compile license):
+python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
+    --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.chb
+
+# 2. Local pinned toolchain (lfc + chronoc on PATH, or LFC/CHRONOC/JAVA_HOME):
+python3 clients/compile_client.py --local --capacity storage_bw=100 -o /tmp/io.chb
+
+# 3. Offline self-check — no network, no chronoc
+#    (pinned lfc + a JRE are still required):
+python3 clients/compile_client.py --check
+```
+
 `scripts/compile_lf.sh` compiles `lf/IoCoordinator.lf` to a `.chb` blob.
 It resolves the pinned `lfc` v0.13.0 and `chronoc` v0.1.0 from this
 repo's `toolchain/` directory — `lfc` is fetched automatically on first
@@ -71,14 +81,23 @@ only prerequisite: set `JAVA_HOME` or keep `java` on `PATH`.
 
 ```sh
 scripts/compile_lf.sh lf/IoCoordinator.lf -o /tmp/io.chb \
-    --param steps=200 --capacity storage_bw=100
+    --capacity storage_bw=100
 ```
 
 Env overrides: `CHRONOC=<path>`, `LFC=<path>`, `JAVA_HOME=<path>`.
+## The LF project in this package
 
-To set up the full authoring environment (IDE extension, Java, Rust,
-pinned `lfc`, one-shot verification), see the ChronoHive repository:
-`scripts/setup-ide.sh` and `docs/ide/VSCODE.md`.
+`lf/` is a complete, self-contained project — see `lf/README.md`.
+`lf/IoCoordinator.lf` is the canonical workload: a timed training loop
+(`Trainer`) driving periodic checkpoints (`CheckpointIO`) and read-ahead
+(`PrefetchIO`).
+
+- Source SHA-256:
+  `b71fb3fbaaac0eac7d2181f6651462d1324056b77780283a593569ac9373bf87`
+- Verify: `sha256sum lf/IoCoordinator.lf`
+- Reference blob: `lf/IoCoordinator.chb.reference` — the exact pinned-toolchain
+  output for the checked-in source (`steps=200`, `storage_bw=100`),
+  verified by `clients/compile_client.py --check`.
 
 ## Toolchain pins
 
@@ -92,3 +111,6 @@ pinned `lfc`, one-shot verification), see the ChronoHive repository:
 Bumping the `lfc` pin requires re-validating every `.lf` source and
 recompiling every blob — blobs carry `lfc` provenance so staleness is
 detectable.
+
+> © 2026 Layer1Labs Silicon Inc. All rights reserved. CONFIDENTIAL —
+> PROPRIETARY. Do not distribute.

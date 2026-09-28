@@ -1,26 +1,68 @@
+# © 2026 Layer1Labs Silicon Inc. All rights reserved.
+# CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for
+# evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+# the ChronoHive Evaluation License (LICENSE). Do not distribute.
 name: CI
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  JRE_SHA256: "2413149700df0f7d440500a84a8f764c535f21e5a5e87d38328b64eec2c5b500"
+
 jobs:
   validate:
-    name: validate
+    name: repo gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - run: python3 scripts/check.py
+          python-version: "3.12"
+      - name: install pinned JRE + lfc
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/jre.tar.gz \
+            "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jre_x64_linux_hotspot_21.0.12.1_1.tar.gz"
+          echo "${JRE_SHA256}  /tmp/jre.tar.gz" | sha256sum -c -
+          sudo mkdir -p /opt/java
+          sudo tar xzf /tmp/jre.tar.gz -C /opt/java --strip-components=1
+          bash scripts/fetch-lfc.sh
+          echo "JAVA_HOME=/opt/java" >> "$GITHUB_ENV"
+          echo "/opt/java/bin" >> "$GITHUB_PATH"
+      - name: run the repo gate
+        run: python3 scripts/check.py
+      - name: prove project-to-blob with the vendored toolchain
+        run: |
+          set -euo pipefail
+          # Full local compile (vendored chronoc + fetched pinned lfc) must
+          # reproduce the checked-in reference blob byte-identically.
+          python3 clients/compile_client.py --local \
+            --capacity storage_bw=100 -o /tmp/io-ci.chb
+          cmp /tmp/io-ci.chb lf/IoCoordinator.chb.reference
+          echo "PROJECT-TO-BLOB OK: local compile reproduces the reference"
+
   docker:
-    name: docker build
+    name: docker toolbox
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -f service/Dockerfile -t chronohive-eval:ci .
+      - name: build the client toolbox image
+        run: docker build -t chronohive-eval:ci .
+      - name: run the offline self-check inside the image
+        run: docker run --rm chronohive-eval:ci
+      - name: prove project-to-blob inside the image
+        run: |
+          set -euo pipefail
+          docker run --rm chronohive-eval:ci sh -c \
+            'python3 clients/compile_client.py --local \
+               --capacity storage_bw=100 -o /tmp/io.chb \
+             && cmp /tmp/io.chb lf/IoCoordinator.chb.reference \
+             && echo "DOCKER PROJECT-TO-BLOB OK"'

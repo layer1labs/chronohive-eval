@@ -1,24 +1,33 @@
-# ChronoHive Admission API — Reference
+# ChronoHive Eval API — Reference
 
-© 2026 Layer1Labs Silicon Inc. All rights reserved. CONFIDENTIAL.
+> © 2026 Layer1Labs Silicon Inc. All rights reserved.
+> **CONFIDENTIAL — PROPRIETARY.** This document describes a confidential
+> evaluation service. Licensed solely for evaluation under the ChronoHive
+> Terms of Confidentiality (`../TOC.md`) and the ChronoHive Evaluation
+> License (`../LICENSE`). **Do not distribute.**
 
-This is the complete reference for the ChronoHive evaluation API. It
-covers the hosted endpoint and self-hosted deployments alike.
+The complete reference for the hosted ChronoHive evaluation API. This
+package is a client package: it drives this API; there is no server to
+self-host in this repository.
 
 **Honesty appendix (applies to every endpoint):** the storage backend,
-the incast contention model, and the storage API surface are **simulated**;
-every grant/refuse decision is produced by the **real ChronoHive
-Runtime kernel**. All numbers are simulation outcomes, not hardware
-measurements. Every response carries `"simulated_backend": true`.
+the incast contention model, and the storage API surface are
+**simulated**; every grant/refuse decision is produced by the **real
+ChronoHive Runtime kernel**. All numbers are simulation outcomes, not
+hardware measurements. Every response carries
+`"simulated_backend": true`.
 
-## Base URLs
+## Base URL
 
-| Deployment  | Base URL                      |
-|-------------|-------------------------------|
-| Hosted eval | `https://api.layer1labs.ai`   |
-| Self-hosted | `http://localhost:8080` (docker compose default) |
+All paths below are relative to the hosted base URL:
 
-All paths below are relative to the base URL.
+```
+https://api.layer1labs.ai
+```
+
+The deployment's version is reported by `GET /v1/health` (`version`)
+and in the `Server` header. Additive endpoint changes bump the minor
+version; breaking changes bump the major version.
 
 ## Authentication
 
@@ -29,10 +38,9 @@ requires an API key:
 Authorization: Bearer <raw-key>
 ```
 
-Keys are issued by the operator (or minted locally with
-`tools/gen_key.py`), have an expiry date, and are stored server-side as
-salted hashes — the server never sees your key except in the
-Authorization header.
+Keys are issued by the operator, have an expiry date, and are stored
+server-side as salted hashes — the server never sees your key except in
+the Authorization header.
 
 | Failure | Status | Meaning |
 |---------|--------|---------|
@@ -72,7 +80,7 @@ python3 tools/sign_toc.py --api-url https://api.layer1labs.ai \
 ```
 
 This writes `toc_signing.key` (mode 600 — your proof of execution, keep
-it) and `toc_acceptance.json`.
+it, never commit it) and `toc_acceptance.json`.
 
 **Step 3 — submit the token:**
 
@@ -169,10 +177,9 @@ Failures: `401` (bad key), `403 {"error": "toc_acceptance_rejected",
 timestamp in the future (beyond 10 minutes of clock skew), or implausibly
 old timestamp (before 2020-01-01).
 
-The server persists each acceptance as `key_id -> {"token": <the signed
-token>, "accepted_at": <server unix time>}`. `accepted_at` is the server's
-own clock at accept time — the authoritative execution record — never the
-client-supplied token timestamp. The acceptance survives restarts.
+`accepted_at` is the server's own clock at accept time — the
+authoritative execution record — never the client-supplied token
+timestamp. The acceptance survives restarts.
 
 ### POST /v1/scenarios
 
@@ -237,8 +244,7 @@ real kernel's per-seed counters.
 ### GET /v1/scenarios/{id}
 
 Fetch a previously run scenario result. Authenticated + TOC required.
-`404` for an unknown id. Scenario results live in process memory (up to
-`CH_MAX_STORED`, default 128) and reset on restart.
+`404` for an unknown id.
 
 ### POST /v1/admission/decide
 
@@ -298,6 +304,93 @@ Admission policy: earliest-deadline-first against the provisioned
 write/read pipes; best-effort (deadline-less) requests yield to
 deadlined ones.
 
+### POST /v1/admission/compare
+
+Kernel-real coordination comparison: the preregistered LF workload runs
+twice through the real kernel — an uncoordinated baseline and the
+coordinated run — and the API returns the coordination delta, honestly
+labeled. Authenticated + TOC required. Takes no request body beyond `{}`.
+
+Response (`200`) carries both runs' kernel counters and the measured
+delta (stall, misses, admits/refusals), each stamped
+`"simulated_backend": true`.
+
+### POST /v1/lf/compile
+
+Compile a **complete Lingua Franca project** to a `.chb` blob through
+the pinned `lfc` + `chronoc` toolchain. Authenticated + TOC required,
+and the key must hold a live **compile license** (issued by the
+operator — without one the endpoint returns `403 compile_license_required`).
+
+The request carries the whole project as a file map:
+
+```json
+{
+  "files": {
+    "IoCoordinator.lf": "<LF source>",
+    "lib/Storage.lf": "<LF source>"
+  },
+  "entrypoint": "IoCoordinator.lf",
+  "params": { "steps": 200 },
+  "capacities": { "storage_bw": 100 }
+}
+```
+
+| Field | Type | Required | Meaning |
+|-------|------|----------|---------|
+| files | object | yes | Relative path → LF source for every file in the project |
+| entrypoint | string | yes | Which file is the compile entrypoint (must be a key of `files`) |
+| params | object | no | Integer main-reactor parameter overrides (e.g. `steps`) |
+| capacities | object | no | Non-negative-integer resource capacities (e.g. `storage_bw`) |
+
+Enforced limits (the server rejects anything over):
+
+| Limit | Value |
+|-------|-------|
+| Files per project | 64 |
+| Per-file size | 512 KiB |
+| Aggregate project size | 2 MiB |
+| Path length | 256 chars; clean relative `.lf` paths only |
+| Compile timeout | 120 s |
+
+Response (`200`):
+
+```json
+{
+  "blob_base64": "<base64 CHB1 blob>",
+  "blob_sha256": "<hex>",
+  "input_sha256": "<hex, deterministic hash of the project + params + capacities>",
+  "input_files": ["IoCoordinator.lf"],
+  "entrypoint": "IoCoordinator.lf",
+  "lfc_version": "lfc 0.13.0",
+  "chronoc_version": "0.1.0",
+  "ops": 3,
+  "steps": 200,
+  "simulated_backend": true
+}
+```
+
+`input_sha256` is deterministic: the same project, params, and
+capacities always hash the same, so you can cache blobs keyed on it.
+The server validates the project with the pinned `lfc` v0.13.0 before
+`chronoc` lowers it — anything `lfc` rejects is never compiled.
+
+If the deployment's compiler toolchain is not provisioned, the
+endpoint returns `503 compiler_unavailable`. The client in this package
+reports the server's answer verbatim in that case.
+
+The canonical client for this endpoint is
+`clients/compile_client.py`:
+
+```bash
+python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
+    --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.chb
+```
+
+It builds the file map from a project directory (`lf/` by default),
+validates the contract locally before sending, and verifies the
+returned blob's structure, provenance, and `blob_sha256` on receipt.
+
 ### GET /
 
 Minimal eval console (HTML): the TOC step plus a scenario form.
@@ -313,8 +406,7 @@ Quotas are per API key and configured at issuance:
 | `quota_scenarios_per_day` | 50 | rolling 24 h | `429`, `Retry-After` header |
 | `quota_decide_per_min` | 60 | rolling 60 s | `429`, `Retry-After` header |
 
-`429` bodies carry `retry_after_s`. Quota counters reset on server
-restart (documented limitation).
+`429` bodies carry `retry_after_s`. Quota counters are persistent.
 
 ## Audit
 
@@ -331,41 +423,21 @@ and request bodies are never logged.
 | 401 | invalid or expired API key | Unknown key or past expiry |
 | 403 | toc_acceptance_required | Key valid, TOC not yet executed |
 | 403 | toc_acceptance_rejected | Token failed verification (`reason` explains) |
+| 403 | compile_license_required | Key valid + TOC executed, but no live compile license |
 | 404 | not found / unknown scenario id | Bad path or id |
 | 405 | use GET /v1/toc | Wrong method on the TOC document endpoint |
 | 429 | scenario quota exceeded / decide quota exceeded | Slow down; honor `Retry-After` |
-
-## Key management (self-hosted)
-
-```
-python3 tools/gen_key.py --id eval-01 --days 30 \
-    --scenarios-per-day 50 --decide-per-min 60 \
-    --existing /run/secrets/api_keys.json
-```
-
-The raw key prints **once** — hand it to the evaluator, then it lives
-only as a salted hash in the keys file. Keys load at server startup; a
-keys-file change needs a restart.
-
-## Self-hosting
-
-```
-docker compose up --build
-docker compose logs api   # grab the generated eval key
-python3 examples/eval_walkthrough.py --api-url http://localhost:8080 ...
-```
-
-See README.md for the full quickstart.
+| 503 | compiler_unavailable | Compile requested but the toolchain isn't provisioned on this deployment |
 
 ## Versioning
 
-The API version is reported by `GET /v1/health` (`version`) and in the
-`Server` header. Additive endpoint changes bump the minor version;
-breaking changes bump the major version.
-
 | Version | Changes |
 |---------|---------|
+| current server release | `/v1/lf/compile` (complete-project file map, license-gated), `/v1/admission/compare` (kernel-real coordination comparison), per-request usage logging |
 | 1.1.0 | TOC execution gate (`/v1/toc`, `/v1/toc/accept`, 403 gating) |
 | 1.0.0 | Initial eval API |
 
-© 2026 Layer1Labs Silicon Inc. All rights reserved. CONFIDENTIAL.
+Check `GET /v1/health` for the version your deployment serves.
+
+> © 2026 Layer1Labs Silicon Inc. All rights reserved. CONFIDENTIAL —
+> PROPRIETARY. Do not distribute.

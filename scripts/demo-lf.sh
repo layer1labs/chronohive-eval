@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# © 2026 Layer1Labs Silicon Inc. All rights reserved.
+# CONFIDENTIAL — ChronoHive Evaluation Package. Licensed solely for
+# evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
+# the ChronoHive Evaluation License (LICENSE). Do not distribute.
 # demo-lf.sh — guided tour of the Lingua Franca evaluation workload.
 #
 # Walks through the full chain an evaluator can inspect:
