@@ -48,16 +48,33 @@ Rules of the chain:
   `0c33d636a19af7ae434940b2c29c56817ea334fa268620306bda67b3fa13b5a8`
 - Verify: `sha256sum lf/IoCoordinator.lf`
 
+## Guided demo
+
+`scripts/demo-lf.sh` walks the whole chain in one go: it shows the LF
+source, validates it with the pinned `lfc`, compiles it with `chronoc`
+to a `.chb` blob, and prints the blob's provenance (hashes, pins,
+shape). Needs a JVM (Java 17+) and internet on first run (one-time
+pinned-`lfc` download, SHA-256 verified).
+
+```sh
+scripts/demo-lf.sh
+```
+
 ## Compiling
 
 `scripts/compile_lf.sh` compiles `lf/IoCoordinator.lf` to a `.chb` blob.
-It needs the pinned `lfc` and a `chronoc` build; if either is missing it
-prints exactly what to install instead of failing cryptically.
+It resolves the pinned `lfc` v0.13.0 and `chronoc` v0.1.0 from this
+repo's `toolchain/` directory — `lfc` is fetched automatically on first
+use (SHA-256 verified), `chronoc` is vendored (`toolchain/README.md`
+has its provenance and rebuild instructions). A JVM (Java 17+) is the
+only prerequisite: set `JAVA_HOME` or keep `java` on `PATH`.
 
 ```sh
 scripts/compile_lf.sh lf/IoCoordinator.lf -o /tmp/io.chb \
     --param steps=200 --capacity storage_bw=100
 ```
+
+Env overrides: `CHRONOC=<path>`, `LFC=<path>`, `JAVA_HOME=<path>`.
 
 To set up the full authoring environment (IDE extension, Java, Rust,
 pinned `lfc`, one-shot verification), see the ChronoHive repository:
@@ -65,12 +82,12 @@ pinned `lfc`, one-shot verification), see the ChronoHive repository:
 
 ## Toolchain pins
 
-| Component | Pin |
-|---|---|
-| `lfc` | v0.13.0 (validation gate) |
-| `chronoc` | v0.1.0 (Rust, LF → `.chb`) |
-| Blob format | `.chb` v1 (`CHB1` magic, CRC-32 trailer) |
-| LF IDE extension | `lf-lang.vscode-lingua-franca` |
+| Component | Pin | Source |
+|---|---|---|
+| `lfc` | v0.13.0 (validation gate) | `scripts/fetch-lfc.sh` (SHA-256 verified) |
+| `chronoc` | v0.1.0 (Rust, LF → `.chb`) | `toolchain/chronoc-linux-x86_64` (vendored) |
+| Blob format | `.chb` v1 (`CHB1` magic, CRC-32 trailer) | |
+| LF IDE extension | `lf-lang.vscode-lingua-franca` | VS Code Marketplace |
 
 Bumping the `lfc` pin requires re-validating every `.lf` source and
 recompiling every blob — blobs carry `lfc` provenance so staleness is
