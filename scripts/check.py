@@ -75,6 +75,7 @@ HEADER_FILES = {"Dockerfile"}  # extensionless files that need the banner
 HEADER_MD_FILES = {
     "README.md", "LICENSE", "NOTICE", "TOC.md",
     "docs/API.md", "docs/LF_TOOLCHAIN.md", "docs/EVALUATION.md",
+    "docs/ARCHITECTURE.md",
     "lf/README.md", "toolchain/README.md",
 }
 
