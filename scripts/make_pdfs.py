@@ -100,14 +100,16 @@ def _inline_parts(pdf: DocPDF, text: str, base_size: int):
             yield ("", text[pos:m.start()])
         tok = m.group(0)
         if tok.startswith("**"):
-            yield ("B", tok[2:-2])
+            # Non-breaking spaces prevent fpdf2 write() from splitting
+            # styled segments across lines (which corrupts the markers).
+            yield ("B", tok[2:-2].replace(" ", "\xa0"))
         elif tok.startswith("`"):
             yield ("CODE", tok[1:-1])
         elif tok.startswith("["):
             label = tok[1:tok.index("]")]
             yield ("", label)
         else:
-            yield ("I", tok[1:-1])
+            yield ("I", tok[1:-1].replace(" ", "\xa0"))
         pos = m.end()
     if pos < len(text):
         yield ("", text[pos:])
@@ -117,15 +119,16 @@ def write_para(pdf: DocPDF, text: str, size: int = 10, style: str = "",
                color=INK, space_after: float = 4, align: str = "L"):
     x0 = pdf.get_x()
     pdf.set_text_color(*color)
-    for fstyle, seg in _inline_parts(pdf, text, size):
-        if fstyle == "CODE":
-            pdf.set_font("DVM", "", size - 0.5)
-            pdf.set_text_color(*TEAL_DK)
-        else:
-            pdf.set_font("DVS", style + fstyle, size)
-            pdf.set_text_color(*color)
-        pdf.write(5.2, seg)
-    pdf.ln(space_after + 2.2)
+    pdf.set_font("DVS", style, size)
+    # Use fpdf2's native markdown for **bold**/*ital*/`code` — it handles
+    # line wrapping of styled segments correctly (manual write() splits them).
+    # Convert `code` to a styled span first since markdown doesn't do code.
+    import re as _re
+    text_md = _re.sub(r"`([^`]+?)`", r"**\1**", text)
+    # [label](url) -> label
+    text_md = _re.sub(r"\[([^\]]+?)\]\(.*?\)", r"\1", text_md)
+    pdf.multi_cell(0, 5.2, text_md, markdown=True, align=align)
+    pdf.ln(space_after)
     pdf.set_x(x0)
 
 
