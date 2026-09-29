@@ -120,7 +120,7 @@ curl https://api.layer1labs.ai/v1/health
 ```json
 {
   "status": "ok",
-  "version": "1.1.0",
+  "version": "0.1.0",
   "toc_sha256": "<pinned TOC hash>",
   "simulated_backend": true
 }
@@ -438,9 +438,7 @@ and request bodies are never logged.
 
 | Version | Changes |
 |---------|---------|
-| current server release | `/v1/lf/compile` (complete-project file map, license-gated), `/v1/admission/compare` (kernel-real coordination comparison), per-request usage logging |
-| 1.1.0 | TOC execution gate (`/v1/toc`, `/v1/toc/accept`, 403 gating) |
-| 1.0.0 | Initial eval API |
+| 0.1.0 (pre-release) | Initial eval API; TOC execution gate (`/v1/toc`, `/v1/toc/accept`, 403 gating); `/v1/lf/compile` (complete-project file map, license-gated); `/v1/admission/compare` (kernel-real coordination comparison); per-request usage logging |
 
 Check `GET /v1/health` for the version your deployment serves.
 
