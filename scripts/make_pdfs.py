@@ -211,7 +211,21 @@ def write_quote(pdf: DocPDF, lines: list[str]):
 
 
 def split_row(line: str) -> list[str]:
-    return [c.strip() for c in line.strip().strip("|").split("|")]
+    # Split on unescaped pipes; \| renders as a literal pipe in the cell.
+    parts, cur, esc = [], [], False
+    for ch in line.strip().strip("|"):
+        if esc:
+            cur.append(ch)
+            esc = False
+        elif ch == "\\":
+            esc = True
+        elif ch == "|":
+            parts.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    parts.append("".join(cur))
+    return [c.strip() for c in parts]
 
 
 def _cell_runs(cell: str):
@@ -342,7 +356,15 @@ def parse_blocks(src: str, base: str):
         if re.match(r"^(\*|-|\d+\.)\s", s):
             buf = []
             ordered = bool(re.match(r"^\d+\.\s", s))
-            while i < n and re.match(r"^(\s*(\*|-|\d+\.)\s)", lines[i]):
+            while i < n:
+                # Skip blank lines between items; end list at first non-list line.
+                j = i
+                while j < n and not lines[j].strip():
+                    j += 1
+                if j >= n or not re.match(r"^(\s*(\*|-|\d+\.)\s)", lines[j]):
+                    i = j
+                    break
+                i = j
                 m2 = re.match(r"^(\s*)(?:\*|-|\d+\.)\s(.*)$", lines[i])
                 depth = len(m2.group(1)) // 2
                 text = m2.group(2)
