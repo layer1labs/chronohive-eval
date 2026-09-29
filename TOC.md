@@ -137,7 +137,8 @@ Amendments must be in writing signed by both parties.
 
 10.2. If any provision is held unenforceable, the rest remain in effect.
 
-10.3. Governing law: **[to be completed by counsel]**.
+10.3. Governing law: the State of Delaware, without regard to its
+conflict-of-laws rules.
 
 10.4. Neither party may assign these terms without the other's written
 consent, except in connection with a merger or sale of substantially
