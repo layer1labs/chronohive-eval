@@ -25,8 +25,9 @@ curl https://api.layer1labs.ai/v1/toc
 
 # 2. Sign and execute the TOC (pure-Python ed25519, no dependencies):
 python3 tools/sign_toc.py --api-url https://api.layer1labs.ai \
-    --key-id <your-key-id> --name "Jane Doe" \
-    --org "Example Corp" --email jane@example.com --submit
+    --api-key "$CHRONOHIVE_API_KEY" --key-id <your-key-id> \
+    --name "Jane Doe" --org "Example Corp" \
+    --email jane@example.com --submit
 
 # 3. Run the worked example end to end (TOC → scenario → live kernel
 #    decisions → result fetch):

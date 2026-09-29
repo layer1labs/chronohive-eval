@@ -48,6 +48,10 @@ Stdlib only.
 
 from __future__ import annotations
 
+# The eval API sits behind Cloudflare, which blocks Python's default
+# urllib User-Agent (HTTP 1010). Identify as the eval client instead.
+USER_AGENT = "ChronoHive-Eval-Client/0.1.0"
+
 import argparse
 import base64
 import hashlib
@@ -325,7 +329,8 @@ def _http_post_json(url: str, api_key: str, payload: dict,
     req = urllib.request.Request(
         url, data=data, method="POST",
         headers={"Content-Type": "application/json",
-                 "Authorization": "Bearer " + api_key})
+                 "Authorization": "Bearer " + api_key,
+                 "User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return resp.status, json.loads(resp.read().decode("utf-8"))

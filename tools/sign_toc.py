@@ -40,12 +40,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ed25519
 import toc_common
 
+# The eval API sits behind Cloudflare, which blocks Python's default
+# urllib User-Agent (HTTP 1010). Identify as the eval client instead.
+USER_AGENT = "ChronoHive-Eval-Client/0.1.0"
+
 
 def read_toc_text(*, toc_path: str | None, api_url: str | None) -> tuple[bytes, str]:
     """Return (toc_bytes, toc_sha256) from a file or the API."""
     if api_url:
         url = api_url.rstrip("/") + "/v1/toc"
-        with urllib.request.urlopen(url, timeout=30) as resp:
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=30) as resp:
             payload = json.load(resp)
         text = payload["toc_text"]
         data = text.encode("utf-8")
@@ -91,7 +96,8 @@ def submit_acceptance(api_url: str, api_key: str, token: dict) -> dict:
         api_url.rstrip("/") + "/v1/toc/accept",
         data=json.dumps(token).encode(),
         headers={"Content-Type": "application/json",
-                 "Authorization": "Bearer " + api_key},
+                 "Authorization": "Bearer " + api_key,
+                 "User-Agent": USER_AGENT},
         method="POST")
     with urllib.request.urlopen(req, timeout=30) as resp:
         return {"status": resp.status, "body": json.load(resp)}

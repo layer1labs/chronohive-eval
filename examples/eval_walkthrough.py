@@ -47,11 +47,13 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "tools"))
 
 import sign_toc
 
+USER_AGENT = sign_toc.USER_AGENT  # Cloudflare blocks Python's default UA
+
 
 def _call(api_url: str, api_key: str | None, method: str, path: str,
           body: dict | None = None) -> tuple[int, dict]:
     data = json.dumps(body).encode() if body is not None else None
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", "User-Agent": USER_AGENT}
     if api_key:
         headers["Authorization"] = "Bearer " + api_key
     req = urllib.request.Request(api_url.rstrip("/") + path, data=data,
