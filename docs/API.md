@@ -107,6 +107,22 @@ A `200 {"accepted": true, ...}` means your key is activated. Per TOC
 §5, a signature verified against the pinned TOC hash constitutes
 execution of the TOC with the same force as a handwritten signature.
 
+## TOC updates
+
+The TOC is pinned by SHA-256: the server enforces the exact text served
+by `GET /v1/toc`. If the TOC text is ever updated (the hash changes):
+
+- **Existing acceptances stay valid.** An acceptance already on file for
+  your key continues to unlock the API — you are not locked out by an
+  update you haven't seen yet.
+- **Re-executing signs the current text.** Re-running `tools/sign_toc.py`
+  always fetches the live TOC from the API, verifies the fetched text
+  matches its SHA-256 before signing, and submitting the new token
+  replaces your stored acceptance with one bound to the new hash.
+- **Check what you're signing.** Compare the `toc_sha256` in your
+  `toc_acceptance.json` against `GET /v1/toc` any time you want to confirm
+  which revision your acceptance is bound to.
+
 ## Endpoints
 
 ### GET /v1/health
@@ -433,6 +449,18 @@ and request bodies are never logged.
 | 405 | use GET /v1/toc | Wrong method on the TOC document endpoint |
 | 429 | scenario quota exceeded / decide quota exceeded | Slow down; honor `Retry-After` |
 | 503 | compiler_unavailable | Compile requested but the toolchain isn't provisioned on this deployment |
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| `403 toc_acceptance_required` on every call | The TOC hasn't been executed for this key yet | Run the three TOC steps above (`sign_toc.py --submit` does all three at once) |
+| `403 toc_acceptance_rejected`, reason `toc_sha256 does not match...` | You signed a stale TOC (the text was updated since) | Re-run `tools/sign_toc.py` — it fetches the current TOC from the API and verifies the hash before signing — then resubmit |
+| `403 toc_acceptance_rejected`, reason `token key_id does not match...` | The token's `key_id` doesn't match the calling key | Re-sign with `--key-id` set to your key's id |
+| `403 toc_acceptance_rejected`, other reasons | `signature verification failed`, or a `timestamp` problem (in the future / implausibly old / malformed) | Check your system clock (tolerance is 10 minutes of skew); re-sign if in doubt |
+| `401` | Missing/malformed `Authorization` header, or unknown/expired key | Send `Authorization: Bearer <raw-key>` exactly; confirm the key hasn't expired with your ChronoHive contact |
+| `429` | Quota exhausted (50 scenarios/day, 60 decides/min) | Back off and honor the `Retry-After` header / `retry_after_s` in the body |
+| `503 compiler_unavailable` | The deployment's compiler toolchain isn't provisioned | Compile locally instead: `python3 clients/compile_client.py --local ...` (see `../README.md`) |
 
 ## Versioning
 

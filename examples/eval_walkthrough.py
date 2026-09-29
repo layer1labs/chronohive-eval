@@ -23,6 +23,13 @@ Usage:
       --name "Jane Doe" --org "Example Corp" --email jane@example.com
 
 Environment equivalents: CH_EVAL_API_URL, CH_EVAL_API_KEY, CH_EVAL_KEY_ID.
+
+Note on signing identity: this walkthrough generates a fresh ephemeral
+ed25519 keypair on every run and re-executes the TOC with it (step 2).
+For a persistent proof-of-execution key, use tools/sign_toc.py instead —
+it writes toc_signing.key (mode 600) and toc_acceptance.json, which you
+keep and never commit. Either path activates the key; they just differ
+in whether the signing key survives the run.
 """
 
 from __future__ import annotations
