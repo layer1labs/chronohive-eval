@@ -13,16 +13,7 @@ define their own workloads in LF.
 
 ## The chain
 
-```mermaid
-flowchart TB
-    IDE["LF IDE — author .lf<br/>lf-lang.vscode-lingua-franca<br/>validation as you type (advisory)"]
-    LFC["Pinned lfc v0.13.0 — authoritative gate<br/>lfc -n -q; generated code discarded"]
-    CHC["chronoc (Rust)<br/>accepted subset → .chb v1 blob<br/>source SHA-256 + lfc/chronoc provenance"]
-    ENG["Engine — blob executor + Runtime kernel<br/>admit / start / observe_completion"]
-    API["Eval API<br/>/v1/scenarios · /v1/admission/decide · /v1/lf/compile"]
-
-    IDE --> LFC --> CHC --> ENG --> API
-```
+![The toolchain chain — IDE to API](diagrams/toolchain-chain.png)
 
 Rules of the chain:
 

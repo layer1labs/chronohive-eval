@@ -345,8 +345,16 @@ def parse_blocks(src: str, base: str):
             while i < n and re.match(r"^(\s*(\*|-|\d+\.)\s)", lines[i]):
                 m2 = re.match(r"^(\s*)(?:\*|-|\d+\.)\s(.*)$", lines[i])
                 depth = len(m2.group(1)) // 2
-                buf.append((depth, m2.group(2)))
+                text = m2.group(2)
                 i += 1
+                # wrapped continuation lines: indented, not a new block
+                while (i < n and lines[i].strip()
+                       and lines[i].startswith((" ", "\t"))
+                       and not re.match(r"^\s*(\*|-|\d+\.)\s", lines[i])
+                       and not re.match(r"^(```|>|#{1,6}\s|\||---+\s*$)", lines[i].strip())):
+                    text += " " + lines[i].strip()
+                    i += 1
+                buf.append((depth, text))
             yield ("list", (ordered, buf))
             continue
         if re.match(r"^---+$", s):

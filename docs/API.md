@@ -10,12 +10,17 @@ The complete reference for the hosted ChronoHive evaluation API. This
 package is a client package: it drives this API; there is no server to
 self-host in this repository.
 
-**Honesty appendix (applies to every endpoint):** the storage backend,
-the incast contention model, and the storage API surface are
-**simulated**; every grant/refuse decision is produced by the **real
-ChronoHive Runtime kernel**. All numbers are simulation outcomes, not
-hardware measurements. Every response carries
-`"simulated_backend": true`.
+**Honesty appendix (applies to every endpoint):** what you are testing is
+**real** — this is a live hosted API, and every grant/refuse decision is
+produced by the real **ChronoHive Runtime kernel** (the actual
+admission-discipline logic: capacity accounting, plan validation, dependency
+checks — not a mock or a lookup table). What is **simulated** is the
+environment around the kernel: the storage backend, the incast contention
+model, and the storage API surface. No evaluation package can ship a data
+center, so the kernel's real decisions play out against a modeled world. All
+numbers are therefore simulation outcomes — valid for comparing coordination
+behavior — not hardware measurements. Every response carries
+`"simulated_backend": true` to say so.
 
 ## Base URL
 

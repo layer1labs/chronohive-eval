@@ -212,7 +212,50 @@ def diagram_compile():
     save(ax, "compile-pipeline.png", W, H)
 
 
+# ------------------------------------------------------ toolchain chain (LF doc)
+def diagram_toolchain_chain():
+    W, H = 10, 5.6
+    fig, ax = plt.subplots(figsize=(W, H))
+    txt(ax, 5.0, 5.32, "The toolchain chain \u2014 IDE to API", size=12)
+
+    stages = [
+        ("LF IDE", ["author .lf files",
+                    "vscode extension",
+                    "validation advisory"], BG, ACCENT),
+        ("lfc 0.13.0", ["pinned \u00b7 authoritative gate",
+                        "rejects \u2192 never built"], ACCENT_LT, ACCENT),
+        ("chronoc (Rust)", ["accepted subset \u2192 .chb v1",
+                            "SHA-256 + provenance",
+                            "no LF validation of its own"], BG, ACCENT),
+        ("Engine", ["blob executor",
+                    "+ Runtime kernel",
+                    "admit \u00b7 start \u00b7 observe"], BG, ACCENT),
+        ("Eval API", ["/v1/scenarios",
+                      "/v1/admission/decide",
+                      "/v1/lf/compile"], PANEL, ACCENT_DK),
+    ]
+    sw, shh, y0, gap = 1.62, 1.85, 2.35, 0.32
+    for i, (title, lines, face, edge) in enumerate(stages):
+        x = 0.31 + i * (sw + gap)
+        rbox(ax, x, y0, sw, shh, face=face, edge=edge,
+             lw=2.0 if i in (1, 4) else 1.6)
+        txt(ax, x + sw / 2, y0 + shh - 0.42, title, size=10)
+        for j, line in enumerate(lines):
+            txt(ax, x + sw / 2, y0 + shh - 0.85 - j * 0.32, line, size=7.5,
+                weight="normal", color=MUTED, ls=1.4)
+        if i < 4:
+            arrow(ax, (x + sw, y0 + shh / 2), (x + sw + gap, y0 + shh / 2))
+
+    rbox(ax, 1.6, 0.95, 6.8, 0.95, face=ACCENT_LT, edge=ACCENT)
+    txt(ax, 5.0, 1.60, "One rule for the whole chain", size=10)
+    txt(ax, 5.0, 1.28, "lfc is the sole authority on valid LF \u00b7 "
+                       "chronoc replaces lfc\u2019s code generator",
+        size=8.5, weight="normal", color=MUTED)
+    save(ax, "toolchain-chain.png", W, H)
+
+
 if __name__ == "__main__":
     diagram_gating()
     diagram_evaluation()
     diagram_compile()
+    diagram_toolchain_chain()

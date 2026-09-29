@@ -60,7 +60,8 @@ jobs:
       - name: install pinned render deps
         # Pinned to the versions the checked-in artifacts were built with;
         # rendering must stay byte-identical or this job fails.
-        run: pip install "matplotlib==3.6.3" "fpdf2==2.8.8"
+        # numpy<2: matplotlib 3.6.3 predates the np.row_stack removal.
+        run: pip install "matplotlib==3.6.3" "fpdf2==2.8.8" "numpy==1.26.4"
       - name: regenerate diagrams and pdfs
         run: |
           set -euo pipefail
