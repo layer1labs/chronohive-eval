@@ -23,7 +23,7 @@ are not.
  ┌──────────────────┐      HTTPS/TLS       ┌─────────────────────────────┐
  │  Your machine    │ ────────────────────▶ │  api.layer1labs.ai          │
  │  (this package)  │                        │                             │
- │  · sign_toc.py   │ ◀──────────────────── │  · Caddy (TLS termination)  │
+ │  · sign_toc.py   │ ◀──────────────────── │  · Cloudflare (edge + DDoS)   │
  │  · eval client   │      JSON responses    │  · Admission API            │
  │  · compile client│                        │  · Runtime kernel  ◀── REAL │
  └──────────────────┘                        │  · Simulated backend ◀── SIM│
@@ -70,7 +70,7 @@ license**, issued by the operator alongside your key.
 ## How evaluation works
 
 Evaluation answers one question: **does kernel-coordinated admission stall
-less than uncoordinated admission?** Three endpoints, one story:
+less than uncoordinated admission?** Four endpoints, one story:
 
 ![Evaluation flow](diagrams/evaluation-flow.png)
 
