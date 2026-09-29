@@ -1,10 +1,5 @@
 # Terms of Confidentiality — ChronoHive Evaluation
 
-> **DRAFT — REQUIRES REVIEW BY LEGAL COUNSEL BEFORE USE.**
-> This document is a template. It is not legal advice and creates no
-> attorney-client relationship. Have counsel review and adapt it before
-> any evaluator executes it.
-
 **CONFIDENTIAL — DO NOT DISTRIBUTE**
 
 © 2026 Layer1Labs Silicon Inc. All rights reserved.
