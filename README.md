@@ -63,9 +63,11 @@ file. The flow:
 | `scripts/compile_lf.sh` | LF→blob compile helper (self-contained; needs only a JVM for `lfc`) |
 | `scripts/demo-lf.sh` | Guided LF tour: source → validate → compile → blob provenance |
 | `scripts/fetch-lfc.sh` | One-time pinned-`lfc` download with hash verification |
+| `docs/ARCHITECTURE.md` | How it works: system architecture, request gating, and how to read your numbers (start here if you want the big picture) |
 | `docs/API.md` | Full hosted API reference, including the `/v1/lf/compile` contract |
 | `docs/LF_TOOLCHAIN.md` | Toolchain pins and the LF→blob pipeline |
 | `TOC.md` | Terms of Confidentiality (pinned by SHA-256) |
+| `pdf/` | Print-ready PDFs of every document: Quickstart, How It Works, API Reference, LF Toolchain, TOC |
 ## Compiling an LF workload to a blob
 
 Lingua Franca workloads compile to the `.chb` v1 artifact the

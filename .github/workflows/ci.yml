@@ -49,6 +49,34 @@ jobs:
           cmp /tmp/io-ci.chb lf/IoCoordinator.chb.reference
           echo "PROJECT-TO-BLOB OK: local compile reproduces the reference"
 
+  pdf-freshness:
+    name: pdf + diagram freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: install pinned render deps
+        # Pinned to the versions the checked-in artifacts were built with;
+        # rendering must stay byte-identical or this job fails.
+        run: pip install "matplotlib==3.6.3" "fpdf2==2.8.8"
+      - name: regenerate diagrams and pdfs
+        run: |
+          set -euo pipefail
+          python3 docs/diagrams/make_diagrams.py
+          python3 scripts/make_pdfs.py
+      - name: fail if checked-in artifacts are stale
+        run: |
+          set -euo pipefail
+          git status --porcelain docs/diagrams pdf > /tmp/dirty.txt
+          if [ -s /tmp/dirty.txt ]; then
+            echo "STALE ARTIFACTS — regenerate with docs/diagrams/make_diagrams.py + scripts/make_pdfs.py:"
+            cat /tmp/dirty.txt
+            exit 1
+          fi
+          echo "diagrams + pdfs are current"
+
   docker:
     name: docker toolbox
     runs-on: ubuntu-latest
