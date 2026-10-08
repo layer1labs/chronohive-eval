@@ -1,0 +1,33 @@
+# Line endings: LF everywhere by default, on every platform.
+* text=auto eol=lf
+
+# Windows script formats whose interpreter actually requires CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell and build scripts must stay LF (CRLF breaks them on Windows too).
+*.sh text eol=lf
+
+# Binary artifacts: never normalize, never diff as text.
+# Constraint-specification files are binary artifacts
+# (.csf is the settled extension; .chb is its pre-rename name).
+*.csf binary
+*.chb binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.7z binary
+*.bin binary
+*.elf binary
+*.jar binary
+
+# Vendored binary payloads: never normalize their bytes.
+# The pinned chronoc binary is a tracked file with no extension.
+toolchain/chronoc-linux-x86_64 -text
+# The pinned lfc tree is fetched (gitignored), not committed; if it is
+# ever vendored, its jars and launcher binaries stay byte-exact too.
+toolchain/lf-cli-*/** -text
