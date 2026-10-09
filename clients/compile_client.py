@@ -6,8 +6,9 @@
 """ChronoHive LF compile test client.
 
 Submits a COMPLETE Lingua Franca project (a file map: relative path ->
-LF source) to the compile API and verifies that a valid .chb blob comes
-back. Also verifies blobs produced by the local pinned toolchain.
+LF source) to the compile API and verifies that a valid .cspec
+specification comes back. Also verifies specifications produced by
+the local pinned toolchain.
 
 Request contract (mirrors POST /v1/lf/compile in the authoritative API):
 
@@ -27,21 +28,21 @@ Validation rules enforced client-side (the server enforces the same):
   * params values are integers (int64); capacities values are integers
     (0..2**32-1).
 
-Blob verification parses the CHB1 envelope directly:
-  magic "CHB1" | version u16 (=1) | flags u16 | step_ns u64 |
+Specification verification parses the CSP1 envelope directly:
+  magic "CSP1" | version u16 (=1) | flags u16 | step_ns u64 |
   string table | capacities | operations | schedule | LF->op bindings |
-  meta (source sha256, lfc/chronoc version strings, target steps) |
+  meta (source sha256, lfc/chronoc version strings, LF target, target steps) |
   CRC-32 (IEEE) trailer over every preceding byte.
 
 Modes:
   --api-url URL --api-key KEY   POST the project to /v1/lf/compile and
-                               verify the returned blob.
+                               verify the returned specification.
   --local                      Compile with the local pinned toolchain
                                (lfc via $LFC, chronoc via $CHRONOC).
   --check                      CI mode: build the file map, run the pinned
                                lfc validation gate on the entrypoint, check
                                the request schema, and verify the checked-in
-                               reference blob. No chronoc, no network.
+                               reference specification. No chronoc, no network.
 
 Stdlib only.
 """
@@ -68,7 +69,7 @@ import zlib
 
 # Pins — must match docs/LF_TOOLCHAIN.md and the authoritative API.
 LFC_VERSION_PIN = "0.13.0"
-CHRONOC_VERSION_PIN = "0.1.0"
+CHRONOC_VERSION_PIN = "0.1.0-alpha.1"
 
 # Limits — mirror the authoritative API's validation.
 MAX_LF_SOURCE_BYTES = 512 * 1024
@@ -189,7 +190,7 @@ def input_sha256(files: dict[str, str]) -> str:
 
 
 # --------------------------------------------------------------------------
-# CHB1 blob verification
+# CSP1 specification verification
 # --------------------------------------------------------------------------
 
 def _crc32_ieee(data: bytes) -> int:
@@ -197,15 +198,15 @@ def _crc32_ieee(data: bytes) -> int:
 
 
 def verify_blob(blob: bytes) -> dict:
-    """Parse and verify a .chb blob. Returns provenance metadata.
+    """Parse and verify a .cspec specification. Returns provenance metadata.
 
     Raises CompileError on any structural problem (bad magic, version,
     truncation, CRC mismatch).
     """
     if len(blob) < 4 + 2 + 2 + 8 + 4 + 32 + 4 + 4:
-        raise CompileError(f"blob too short ({len(blob)} bytes)")
-    if blob[:4] != b"CHB1":
-        raise CompileError(f"bad magic: {blob[:4]!r} (want b'CHB1')")
+        raise CompileError(f"specification too short ({len(blob)} bytes)")
+    if blob[:4] != b"CSP1":
+        raise CompileError(f"bad magic: {blob[:4]!r} (want b'CSP1')")
     body, trailer = blob[:-4], blob[-4:]
     stored = struct.unpack("<I", trailer)[0]
     computed = _crc32_ieee(body)
@@ -217,13 +218,13 @@ def verify_blob(blob: bytes) -> dict:
     version, flags = struct.unpack_from("<HH", body, off)
     off += 4
     if version != 1:
-        raise CompileError(f"unsupported blob version: {version}")
+        raise CompileError(f"unsupported specification version: {version}")
     step_ns = struct.unpack_from("<Q", body, off)[0]
     off += 8
 
     def need(n: int) -> None:
         if off + n > len(body):
-            raise CompileError("blob truncated while parsing")
+            raise CompileError("specification truncated while parsing")
 
     need(4)
     n_strings = struct.unpack_from("<I", body, off)[0]
@@ -277,11 +278,11 @@ def verify_blob(blob: bytes) -> dict:
     n_bindings = struct.unpack_from("<I", body, off)[0]
     off += 4 + n_bindings * 8
 
-    need(32 + 4 + 4 + 4)
+    need(32 + 4 + 4 + 4 + 4)
     lf_sha256 = body[off:off + 32].hex()
     off += 32
-    lfc_idx, chronoc_idx, target_steps = struct.unpack_from("<III", body, off)
-    off += 12
+    lfc_idx, chronoc_idx, lf_target_idx, target_steps = struct.unpack_from("<IIII", body, off)
+    off += 16
     if off != len(body):
         raise CompileError(f"trailing bytes after meta: {len(body) - off}")
 
@@ -297,6 +298,7 @@ def verify_blob(blob: bytes) -> dict:
         "lf_sha256": lf_sha256,
         "lfc_version": get_string(lfc_idx),
         "chronoc_version": get_string(chronoc_idx),
+        "lf_target": get_string(lf_target_idx),
         "target_steps": target_steps,
         "crc_ok": True,
         "blob_sha256": hashlib.sha256(blob).hexdigest(),
@@ -306,7 +308,7 @@ def verify_blob(blob: bytes) -> dict:
 
 def check_provenance(meta: dict, expect_source_sha256: str | None = None
                     ) -> None:
-    """Assert the blob came from the pinned toolchain (and optionally the
+    """Assert the specification came from the pinned toolchain (and optionally the
     expected LF source)."""
     if LFC_VERSION_PIN not in meta["lfc_version"]:
         raise CompileError(f"blob lfc version {meta['lfc_version']!r} does "
@@ -343,7 +345,7 @@ def _http_post_json(url: str, api_key: str, payload: dict,
 
 
 def compile_via_api(api_url: str, api_key: str, payload: dict) -> dict:
-    """POST the project to /v1/lf/compile and verify the returned blob."""
+    """POST the project to /v1/lf/compile and verify the returned specification."""
     url = api_url.rstrip("/") + "/v1/lf/compile"
     status, resp = _http_post_json(url, api_key, payload)
     if status == 403 and resp.get("error") == "toc_acceptance_required":
@@ -445,7 +447,7 @@ def compile_local(files: dict[str, str], entrypoint: str,
     tmp = materialize_project(files)
     try:
         lfc_version = lfc_gate(lfc, tmp, entrypoint)
-        out = os.path.join(tmp, "workload.chb")
+        out = os.path.join(tmp, "workload.cspec")
         cmd = [chronoc, "compile", entrypoint, "-o", out, "--lfc", lfc]
         for key, value in params.items():
             cmd += ["--param", f"{key}={value}"]
@@ -491,7 +493,7 @@ def _kv_pairs(pairs: list[str]) -> dict[str, int]:
 def main() -> None:
     ap = argparse.ArgumentParser(
         description="ChronoHive LF compile test client: submit a complete "
-                    "LF project and verify the .chb blob that comes back.")
+                    "LF project and verify the .cspec specification that comes back.")
     ap.add_argument("--lf-dir", default=os.path.join(REPO_ROOT, "lf"),
                     help="LF project directory (default: lf/)")
     ap.add_argument("--entrypoint", default=None,
@@ -510,11 +512,11 @@ def main() -> None:
                          "of the API ($LFC / $CHRONOC)")
     ap.add_argument("--check", action="store_true",
                     help="CI mode: file map + lfc gate + request schema + "
-                         "reference-blob verification (no chronoc, no API)")
+                         "reference-specification verification (no chronoc, no API)")
     ap.add_argument("--reference-blob",
                     default=os.path.join(REPO_ROOT, "lf",
-                                         "IoCoordinator.chb.reference"),
-                    help="reference blob verified in --check mode")
+                                         "IoCoordinator.cspec.reference"),
+                    help="reference specification verified in --check mode")
     ap.add_argument("-o", "--out", default=None,
                     help="write the compiled blob to this path")
     args = ap.parse_args()
@@ -551,7 +553,7 @@ def main() -> None:
             meta = verify_blob(ref)
             check_provenance(
                 meta, input_source_sha256(files[entrypoint]))
-            print(f"reference blob OK: {meta['blob_bytes']} bytes, "
+            print(f"reference specification OK: {meta['blob_bytes']} bytes, "
                   f"{meta['n_ops']} ops, {meta['n_steps']} steps, "
                   f"lfc {meta['lfc_version']}, chronoc {meta['chronoc_version']}, "
                   f"source sha256 matches {entrypoint!r}")

@@ -178,7 +178,7 @@ def diagram_evaluation():
 def diagram_compile():
     W, H = 10, 5.4
     fig, ax = plt.subplots(figsize=(W, H))
-    txt(ax, 5.0, 5.12, "The LF \u2192 CHB1 compile pipeline", size=12)
+    txt(ax, 5.0, 5.12, "The LF \u2192 CSP1 compile pipeline", size=12)
 
     stages = [
         ("Your LF project", ["1\u201364 .lf files \u00b7 entrypoint",
@@ -187,7 +187,7 @@ def diagram_compile():
                              "fail here \u2192 nothing else runs"], ACCENT_LT, ACCENT),
         ("chronoc lowering", ["validated project \u2192 kernel ops",
                               "admission-aware schedule"], BG, ACCENT),
-        ("CHB1 blob", ["magic \u201cCHB1\u201d \u00b7 version",
+        ("CSP1 specification", ["magic \u201cCSP1\u201d \u00b7 version",
                        "ops \u00b7 schedule \u00b7 CRC-32"], PANEL, ACCENT_DK),
     ]
     sw, shh, y0 = 2.05, 1.65, 2.55
@@ -224,7 +224,7 @@ def diagram_toolchain_chain():
                     "validation advisory"], BG, ACCENT),
         ("lfc 0.13.0", ["pinned \u00b7 authoritative gate",
                         "rejects \u2192 never built"], ACCENT_LT, ACCENT),
-        ("chronoc (Rust)", ["accepted subset \u2192 .chb v1",
+        ("chronoc (Rust)", ["accepted subset \u2192 .cspec v1",
                             "SHA-256 + provenance",
                             "no LF validation of its own"], BG, ACCENT),
         ("Engine", ["blob executor",

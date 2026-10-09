@@ -6,11 +6,12 @@
 //
 // A timed training loop (Trainer) drives storage I/O through two
 // single-purpose reactors: CheckpointIO admits periodic checkpoints and
-// PrefetchIO issues read-ahead. chronoc lowers this to a .chb blob; the
-// engine executes the blob directly (no generated code runs).
+// PrefetchIO issues read-ahead. chronoc lowers this to a .cspec
+// specification; the engine executes the specification directly
+// (no generated code runs).
 //
 // The source must pass the real pinned lfc (Python target); chronoc then
-// lowers the accepted subset to the blob.
+// lowers the accepted subset to the specification.
 
 target Python
 

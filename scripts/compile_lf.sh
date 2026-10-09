@@ -4,14 +4,14 @@
 # evaluation under the ChronoHive Terms of Confidentiality (TOC.md) and
 # the ChronoHive Evaluation License (LICENSE). Do not distribute.
 #
-# compile_lf.sh — compile an LF workload to a ChronoHive .chb blob.
+# compile_lf.sh — compile an LF workload to a ChronoHive .cspec specification.
 #
 # Portable: resolves the pinned lfc and chronoc from this repo's
 # toolchain/ directory (fetching lfc on first use), and locates a JVM
 # for lfc. Compiling is optional for evaluation — the API and worked
 # example need neither.
 #
-# Usage: scripts/compile_lf.sh <source.lf> -o <out.chb> [chronoc args...]
+# Usage: scripts/compile_lf.sh <source.lf> -o <out.cspec> [chronoc args...]
 #
 # Env overrides:
 #   CHRONOC=<path>   chronoc binary (default: toolchain/chronoc-linux-x86_64)
@@ -22,7 +22,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TOOLCHAIN_DIR="$REPO_ROOT/toolchain"
 
-SRC="${1:?usage: compile_lf.sh <source.lf> -o <out.chb> [chronoc args...]}"
+SRC="${1:?usage: compile_lf.sh <source.lf> -o <out.cspec> [chronoc args...]}"
 shift
 
 # --- chronoc: env override, then the repo-vendored binary, then PATH. ---
