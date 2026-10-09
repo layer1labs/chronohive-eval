@@ -338,7 +338,7 @@ delta (stall, misses, admits/refusals), each stamped
 
 ### POST /v1/lf/compile
 
-Compile a **complete Lingua Franca project** to a `.chb` blob through
+Compile a **complete Lingua Franca project** to a `.cspec` specification through
 the pinned `lfc` + `chronoc` toolchain. Authenticated + TOC required,
 and the key must hold a live **compile license** (issued by the
 operator — without one the endpoint returns `403 compile_license_required`).
@@ -378,13 +378,13 @@ Response (`200`):
 
 ```json
 {
-  "blob_base64": "<base64 CHB1 blob>",
+  "blob_base64": "<base64 CSP1 specification>",
   "blob_sha256": "<hex>",
   "input_sha256": "<hex, deterministic hash of the project + params + capacities>",
   "input_files": ["IoCoordinator.lf"],
   "entrypoint": "IoCoordinator.lf",
   "lfc_version": "lfc 0.13.0",
-  "chronoc_version": "0.1.0",
+  "chronoc_version": "0.1.0-alpha.1",
   "ops": 3,
   "steps": 200,
   "simulated_backend": true
@@ -392,7 +392,7 @@ Response (`200`):
 ```
 
 `input_sha256` is deterministic: the same project, params, and
-capacities always hash the same, so you can cache blobs keyed on it.
+capacities always hash the same, so you can cache specifications keyed on it.
 The server validates the project with the pinned `lfc` v0.13.0 before
 `chronoc` lowers it — anything `lfc` rejects is never compiled.
 
@@ -405,7 +405,7 @@ The canonical client for this endpoint is
 
 ```bash
 python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
-    --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.chb
+    --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.cspec
 ```
 
 It builds the file map from a project directory (`lf/` by default),

@@ -140,7 +140,7 @@ def _iter_sweep_files():
     for root, dirs, names in os.walk(REPO_ROOT):
         dirs[:] = [d for d in dirs if d not in SWEEP_SKIP_DIRS]
         for name in sorted(names):
-            if name in SWEEP_SKIP_FILES or name.endswith(".chb.reference"):
+            if name in SWEEP_SKIP_FILES or name.endswith(".cspec.reference"):
                 continue
             _stem, ext = os.path.splitext(name)
             if ext not in SWEEP_EXTENSIONS:

@@ -55,30 +55,30 @@ file. The flow:
 
 | Path | What it is |
 |---|---|
-| `clients/compile_client.py` | Complete-project LF→blob compile client: hosted API mode, local pinned-toolchain mode, and an offline `--check` self-test |
+| `clients/compile_client.py` | Complete-project LF→specification compile client: hosted API mode, local pinned-toolchain mode, and an offline `--check` self-test |
 | `examples/eval_walkthrough.py` | Worked end-to-end admission example (TOC → scenario → live kernel decisions) |
 | `tools/sign_toc.py` | TOC signing and submission tool (pure-Python ed25519) |
 | `tools/toc_common.py`, `tools/ed25519.py` | Acceptance-token format and RFC 8032 ed25519 implementation |
-| `lf/` | Complete LF workload project (`IoCoordinator.lf`), editor config, and a checked-in reference blob for offline verification |
-| `toolchain/` | Pinned LF toolchain: vendored `chronoc` v0.1.0 binary + `lfc` v0.13.0 fetch (SHA-256 verified) |
-| `scripts/compile_lf.sh` | LF→blob compile helper (self-contained; needs only a JVM for `lfc`) |
-| `scripts/demo-lf.sh` | Guided LF tour: source → validate → compile → blob provenance |
+| `lf/` | Complete LF workload project (`IoCoordinator.lf`), editor config, and a checked-in reference specification for offline verification |
+| `toolchain/` | Pinned LF toolchain: vendored `chronoc` v0.1.0-alpha.1 binary + `lfc` v0.13.0 fetch (SHA-256 verified) |
+| `scripts/compile_lf.sh` | LF→specification compile helper (self-contained; needs only a JVM for `lfc`) |
+| `scripts/demo-lf.sh` | Guided LF tour: source → validate → compile → specification provenance |
 | `scripts/fetch-lfc.sh` | One-time pinned-`lfc` download with hash verification |
 | `docs/ARCHITECTURE.md` | How it works: system architecture, request gating, and how to read your numbers (start here if you want the big picture) |
 | `docs/API.md` | Full hosted API reference, including the `/v1/lf/compile` contract |
-| `docs/LF_TOOLCHAIN.md` | Toolchain pins and the LF→blob pipeline |
+| `docs/LF_TOOLCHAIN.md` | Toolchain pins and the LF→specification pipeline |
 | `TOC.md` | Terms of Confidentiality (pinned by SHA-256) |
 | `pdf/` | Print-ready PDFs of every document: Quickstart, How It Works, API Reference, LF Toolchain, TOC |
-## Compiling an LF workload to a blob
+## Compiling an LF workload to a specification
 
-Lingua Franca workloads compile to the `.chb` v1 artifact the
+Lingua Franca workloads compile to the `.cspec` v1 artifact the
 ChronoHive engine executes. The compile takes the **complete LF
 project** — every `.lf` file as a file map — plus an entrypoint,
 parameters, and capacities:
 
 ```bash
 python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
-    --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.chb
+    --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.cspec
 ```
 
 The hosted compile API requires a key with a **compile license** (issued
@@ -87,7 +87,7 @@ the client does: ≤64 files, ≤512 KiB per file, ≤2 MiB aggregate,
 relative `.lf` paths only, 120 s compile timeout.
 
 For a guided tour of the same chain (source → pinned-`lfc` validation →
-`chronoc` lowering → blob provenance), run:
+`chronoc` lowering → specification provenance), run:
 
 ```sh
 scripts/demo-lf.sh
@@ -97,7 +97,7 @@ or compile the checked-in project directly with the vendored toolchain
 (self-contained — needs only a JVM for `lfc`):
 
 ```sh
-scripts/compile_lf.sh lf/IoCoordinator.lf -o io.chb --capacity storage_bw=100
+scripts/compile_lf.sh lf/IoCoordinator.lf -o io.cspec --capacity storage_bw=100
 ```
 
 Full authoring setup (IDE extension, Java) is documented in
@@ -106,7 +106,7 @@ worked example, and the scenarios all run on stdlib Python.
 
 Compiling is optional for evaluation — the admission API needs neither
 `lfc` nor `chronoc`. The local mode (`--local`) and the offline check
-(`--check`, which verifies the checked-in reference blob
+(`--check`, which verifies the checked-in reference specification
 byte-structure with no network and no `chronoc` — pinned `lfc` +
 a JRE are still required) cover evaluators who work air-gapped.
 
@@ -119,7 +119,7 @@ python3 scripts/check.py
 The gate byte-compiles every Python file, reproduces the RFC 8032
 ed25519 test vectors, runs the branding sweep (vendor-neutrality, no
 internal markers), and runs the compile client's `--check` (LF project
-map, pinned `lfc` validation gate, reference-blob verification).
+map, pinned `lfc` validation gate, reference-specification verification).
 
 ## License and confidentiality
 

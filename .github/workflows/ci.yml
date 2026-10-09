@@ -39,15 +39,15 @@ jobs:
           echo "/opt/java/bin" >> "$GITHUB_PATH"
       - name: run the repo gate
         run: python3 scripts/check.py
-      - name: prove project-to-blob with the vendored toolchain
+      - name: prove project-to-specification with the vendored toolchain
         run: |
           set -euo pipefail
           # Full local compile (vendored chronoc + fetched pinned lfc) must
-          # reproduce the checked-in reference blob byte-identically.
+          # reproduce the checked-in reference specification byte-identically.
           python3 clients/compile_client.py --local \
-            --capacity storage_bw=100 -o /tmp/io-ci.chb
-          cmp /tmp/io-ci.chb lf/IoCoordinator.chb.reference
-          echo "PROJECT-TO-BLOB OK: local compile reproduces the reference"
+            --capacity storage_bw=100 -o /tmp/io-ci.cspec
+          cmp /tmp/io-ci.cspec lf/IoCoordinator.cspec.reference
+          echo "PROJECT-TO-SPECIFICATION OK: local compile reproduces the reference"
 
   pdf-freshness:
     name: pdf + diagram freshness
@@ -87,11 +87,11 @@ jobs:
         run: docker build -t chronohive-eval:ci .
       - name: run the offline self-check inside the image
         run: docker run --rm chronohive-eval:ci
-      - name: prove project-to-blob inside the image
+      - name: prove project-to-specification inside the image
         run: |
           set -euo pipefail
           docker run --rm chronohive-eval:ci sh -c \
             'python3 clients/compile_client.py --local \
-               --capacity storage_bw=100 -o /tmp/io.chb \
-             && cmp /tmp/io.chb lf/IoCoordinator.chb.reference \
-             && echo "DOCKER PROJECT-TO-BLOB OK"'
+               --capacity storage_bw=100 -o /tmp/io.cspec \
+             && cmp /tmp/io.cspec lf/IoCoordinator.cspec.reference \
+             && echo "DOCKER PROJECT-TO-SPECIFICATION OK"'

@@ -94,7 +94,7 @@ less than uncoordinated admission?** Four endpoints, one story:
 3. **`POST /v1/admission/compare` — baseline vs coordinated, head to head.**
    A preregistered Lingua Franca workload runs twice through the real
    Runtime kernel with no-op effectors: once with effectively infinite
-   capacities (uncoordinated baseline) and once with the blob's real
+   capacities (uncoordinated baseline) and once with the specification's real
    capacities (coordinated). The delta *is* the kernel's coordination
    behavior — who is admitted when, what retries, what drops. Admission
    decisions are real; no I/O timing is simulated or measured, so no
@@ -109,13 +109,13 @@ Quickstart in `../README.md`.
 
 ## How compilation works
 
-Lingua Franca workloads compile to `.chb` v1 blobs — the artifact the
+Lingua Franca workloads compile to `.cspec` v1 specifications — the artifact the
 engine executes. Compilation is a pipeline with a hard validation gate up
 front:
 
 ![Compile pipeline](diagrams/compile-pipeline.png)
 
-**Figure 4 — The LF → CHB1 compile pipeline.**
+**Figure 4 — The LF → CSP1 compile pipeline.**
 
 1. **Your LF project** — a complete file map (1–64 `.lf` files), an
    entrypoint, integer params, and capacity declarations.
@@ -123,11 +123,11 @@ front:
    checks the project. If it fails here, nothing else runs.
 3. **`chronoc` lowering** — the ChronoHive compiler lowers the validated
    project to the kernel's operation set (e.g. `c.admit_checkpoint`) and
-   serializes the **CHB1 blob**: magic `"CHB1"`, version, step table,
+   serializes the **CSP1 specification**: magic `"CSP1"`, version, step table,
    string table, capacities, operations, schedule, LF→op bindings, source
    provenance (SHA-256, toolchain versions), and a CRC-32 trailer.
 4. **Deterministic** — the same project always produces the byte-identical
-   blob. Verify with `sha256sum`.
+   specification. Verify with `sha256sum`.
 
 You can compile three ways: the hosted API (`clients/compile_client.py`
 with `--api-url`, needs a compile license), the local pinned toolchain
@@ -158,6 +158,6 @@ for the commands.
 | `GET /v1/scenarios/{id}` | Fetch a stored scenario result | Key + TOC |
 | `POST /v1/admission/decide` | Live kernel decisions for one window | Key + TOC; 60/min |
 | `POST /v1/admission/compare` | Baseline vs coordinated workload run | Key + TOC |
-| `POST /v1/lf/compile` | Compile an LF project to a CHB1 blob | Key + TOC + compile license |
+| `POST /v1/lf/compile` | Compile an LF project to a CSP1 specification | Key + TOC + compile license |
 
 Full request/response contracts are in `API.md`.

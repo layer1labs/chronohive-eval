@@ -13,10 +13,10 @@
 #   docker build -t chronohive-eval .
 #   docker run --rm chronohive-eval                     # offline self-check
 #   docker run --rm chronohive-eval python3 clients/compile_client.py \
-#       --local --capacity storage_bw=100 -o /tmp/io.chb   # full local compile
+#       --local --capacity storage_bw=100 -o /tmp/io.cspec   # full local compile
 #   docker run --rm -e CHRONOHIVE_API_KEY=... chronohive-eval \
 #       python3 clients/compile_client.py --api-url https://api.layer1labs.ai \
-#           --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.chb
+#           --api-key "$CHRONOHIVE_API_KEY" --capacity storage_bw=100 -o /tmp/io.cspec
 
 FROM docker.io/library/python:3.12-slim-trixie@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b
 
@@ -68,5 +68,5 @@ RUN python3 -m compileall -q clients tools scripts examples \
  && /opt/lf/bin/lfc --version \
  && test -x /pkg/toolchain/chronoc-linux-x86_64
 
-# Default: the offline self-check (project map, lfc gate, reference blob).
+# Default: the offline self-check (project map, lfc gate, reference specification).
 CMD ["python3", "clients/compile_client.py", "--check"]
