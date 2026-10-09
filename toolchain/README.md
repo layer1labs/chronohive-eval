@@ -22,6 +22,13 @@ here or is fetched here by `scripts/fetch-lfc.sh`.
   release profile (`cargo build --release --locked`). Re-vendored 2026-10-08
   for the Constraint Specification rename (`.cspec`, magic `CSP1`); the previous
   pin was a pre-rename `0.1.0` build emitting `.chb`/`CHB1`.
+- Re-vendor verified 2026-10-08 (W5): rebuilt from the toolchain repo at
+  `feat/lower-model` head `c5b822f` (the renamed source, including the
+  `lower-model`/`dump-model` backend). The build is reproducible — the
+  freshly built binary is byte-identical to the pin above (same SHA-256),
+  so the vendored file itself is unchanged by this re-vendor; the eval
+  gate (`scripts/check.py`) and the reference-specification reproduction
+  were re-run against it.
 - Linked against system libc/libgcc only; runs on any modern Linux x86_64.
 
 To rebuild from source (e.g. for another platform), clone the ChronoHive
