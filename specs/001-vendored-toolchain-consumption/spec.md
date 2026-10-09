@@ -193,7 +193,7 @@ stated here. Assessment outputs are in `assessments/`.
   regenerated via `scripts/make_pdfs.py`), the current PR #12 head
   this PR is stacked on; its CI run is 37866636846.
 
-### EVAL-007 — Tonight's W5 re-vendor from the renamed toolchain build (PENDING)
+### EVAL-007 — Tonight's W5 re-vendor from the renamed toolchain build (DONE)
 
 - **Statement:** Under W5 of the tonight execution plan, this repo's
   chronoc is re-vendored from the RENAMED toolchain build (binary
@@ -204,14 +204,23 @@ stated here. Assessment outputs are in `assessments/`.
   README hash does not match the re-vendored binary; or CI is red
   after the re-vendor; or the re-vendor is performed by text-sweeping
   the old binary/repo instead of replacing the binary.
-- **Evidence:** **PENDING — marked as such, per the addendum.** As of
-  this backfill (2026-10-08 evening EDT), the W5 evidence directory
-  (`hidden_files/chrono-program/w5-evidence/` in the coordinator
-  workspace) does not exist and no re-vendor commit is on
-  `chore/rename-cspec` beyond the W2 fix `d77fb2e`. A second worker (W5) performs
-  the re-vendor later tonight on `chore/rename-cspec`; this PR's base
-  tip is expected to move when it does. Claim status in `claims.json`:
-  `unsupported` / `insufficient_evidence` until that evidence lands.
+- **Evidence:** DONE by the W5 worker after this spec's first drafts
+  (it was PENDING / `unsupported` in assessment runs 1–4, which is
+  what those runs honestly record). Commit `f485f46` on
+  `chore/rename-cspec` (the current base head of this PR): chronoc
+  rebuilt from `layer1labs/chronohive-toolchain` at `feat/lower-model`
+  head `c5b822f` and replaced in place — the build is reproducible,
+  the new binary is **byte-identical** to the prior pin (SHA-256
+  `ab12076b…` unchanged), so the commit records the verified
+  provenance in `toolchain/README.md` only. W5 worker verified
+  locally: `scripts/check.py` ALL CHECKS PASSED and
+  `compile_client.py --local` reproduces
+  `lf/IoCoordinator.cspec.reference` byte-identically. PR #12 CI
+  green at `f485f46` (run 37867137348, all three jobs). W5 clean-room
+  transcript on file at `hidden_files/chrono-program/
+  w5-evidence/clean-room-transcript.txt` in the coordinator
+  workspace. This claim was re-assessed after the evidence landed
+  (see `assessments/`).
 
 ## Non-goals
 

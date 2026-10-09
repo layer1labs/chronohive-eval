@@ -236,8 +236,8 @@
     },
     {
       "boundary": [
-        "W5 workstream, TONIGHT-EXECUTION-PLAN-2026-10-08.md W5 Part 2; performed by a separate worker on chore/rename-cspec later tonight (2026-10-08)",
-        "PENDING at backfill time: no evidence is claimed for this claim yet"
+        "W5 workstream, TONIGHT-EXECUTION-PLAN-2026-10-08.md W5 Part 2; performed by a separate worker on chore/rename-cspec, commit f485f46 stacked on b994856",
+        "Was PENDING / unsupported in assessment runs 1-4 (evidence genuinely absent then); updated and re-assessed after the evidence landed the same night"
       ],
       "conflicts_with": [],
       "depends_on": [
@@ -246,12 +246,20 @@
       ],
       "evidence": [
         {
-          "description": "Checked 2026-10-08 evening EDT during this backfill: the coordinator-workspace directory hidden_files/chrono-program/w5-evidence/ does not exist, and chore/rename-cspec has no re-vendor commit beyond the W2 fix d77fb2e. Evidence is pending, not absent-by-conclusion; this claim must be re-assessed when W5 lands.",
-          "direction": "context",
-          "kind": "unsupported",
-          "ref": "coordinator workspace hidden_files/chrono-program/ listing, 2026-10-08",
-          "source_id": "w5-evidence-absent-2026-10-08",
-          "source_quality": "secondary"
+          "description": "Commit f485f46 on chore/rename-cspec: chronoc rebuilt from layer1labs/chronohive-toolchain at feat/lower-model head c5b822f and replaced in place; the build is reproducible and byte-identical to the prior pin (SHA-256 ab12076b76c095438b43b56ff71dc38db783c5fc988ce61b8caf396db89281e1 unchanged), so the commit records verified provenance in toolchain/README.md only. W5 local verification: scripts/check.py ALL CHECKS PASSED; compile_client.py --local reproduces lf/IoCoordinator.cspec.reference byte-identically.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "layer1labs/chronohive-eval commit f485f46382de2ff67e6aa1c9f9b63bb448fd3f47 on chore/rename-cspec, 2026-10-08",
+          "source_id": "w5-revendor-f485f46",
+          "source_quality": "primary"
+        },
+        {
+          "description": "PR #12 CI green at f485f46: repo gate, pdf + diagram freshness, and docker toolbox all pass. W5 clean-room transcript (install -> chrono new -> build -> run) on file in the coordinator workspace.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "gh pr checks 12, run 37867137348; hidden_files/chrono-program/w5-evidence/clean-room-transcript.txt",
+          "source_id": "w5-evidence-2026-10-08",
+          "source_quality": "test"
         }
       ],
       "falsification_tests": [
@@ -263,9 +271,9 @@
       "id": "EVAL-007",
       "kind": "requirement",
       "source_ref": "spec.md#EVAL-007",
-      "status": "unsupported",
+      "status": "supported",
       "text": "Tonight's W5 re-vendor replaces this repo's vendored chronoc with the renamed toolchain build (binary replacement only), refreshes the pins/hashes in toolchain/README.md to match the new binary, and leaves the eval gate green on the updated PR.",
-      "uncertainty": "insufficient_evidence"
+      "uncertainty": "low"
     }
   ],
   "schema_version": "1.0"

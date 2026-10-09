@@ -8,7 +8,7 @@
   },
   "phase": "after_specify",
   "outcome": "iterate",
-  "summary": "Assessed 7 claim(s); found 15 failure mode(s); 1 claim(s) below the 0.70 confidence threshold.",
+  "summary": "Assessed 7 claim(s); found 15 failure mode(s); 0 claim(s) below the 0.70 confidence threshold.",
   "findings": [
     {
       "id": "AEE-EVAL-001-IRREDUCIBILITY-CHALLENGE",
@@ -386,9 +386,14 @@
       "description": "Claim may contain multiple independently falsifiable propositions",
       "evidence_refs": [
         {
-          "ref": "coordinator workspace hidden_files/chrono-program/ listing, 2026-10-08",
-          "kind": "unsupported",
-          "description": "Checked 2026-10-08 evening EDT during this backfill: the coordinator-workspace directory hidden_files/chrono-program/w5-evidence/ does not exist, and chore/rename-cspec has no re-vendor commit beyond the W2 fix d77fb2e. Evidence is pending, not absent-by-conclusion; this claim must be re-assessed when W5 lands."
+          "ref": "layer1labs/chronohive-eval commit f485f46382de2ff67e6aa1c9f9b63bb448fd3f47 on chore/rename-cspec, 2026-10-08",
+          "kind": "observed",
+          "description": "Commit f485f46 on chore/rename-cspec: chronoc rebuilt from layer1labs/chronohive-toolchain at feat/lower-model head c5b822f and replaced in place; the build is reproducible and byte-identical to the prior pin (SHA-256 ab12076b76c095438b43b56ff71dc38db783c5fc988ce61b8caf396db89281e1 unchanged), so the commit records verified provenance in toolchain/README.md only. W5 local verification: scripts/check.py ALL CHECKS PASSED; compile_client.py --local reproduces lf/IoCoordinator.cspec.reference byte-"
+        },
+        {
+          "ref": "gh pr checks 12, run 37867137348; hidden_files/chrono-program/w5-evidence/clean-room-transcript.txt",
+          "kind": "observed",
+          "description": "PR #12 CI green at f485f46: repo gate, pdf + diagram freshness, and docker toolbox all pass. W5 clean-room transcript (install -> chrono new -> build -> run) on file in the coordinator workspace."
         }
       ],
       "provenance_refs": [
@@ -396,7 +401,7 @@
         "EVAL-001",
         "EVAL-006"
       ],
-      "uncertainty": "insufficient_evidence",
+      "uncertainty": "low",
       "recommended_action": "revise",
       "rationale": "Irreducibility challenge"
     }
@@ -407,7 +412,7 @@
     "message": "Revise the current phase to address 15 finding(s)."
   },
   "metadata": {
-    "timestamp": "2026-10-09T00:52:55.119163Z",
+    "timestamp": "2026-10-09T00:59:56.895460Z",
     "artifacts_evaluated": [
       "specs/001-vendored-toolchain-consumption/claims.json"
     ],
@@ -890,10 +895,10 @@
           "id": "EVAL-007",
           "text": "Tonight's W5 re-vendor replaces this repo's vendored chronoc with the renamed toolchain build (binary replacement only), refreshes the pins/hashes in toolchain/README.md to match the new binary, and leaves the eval gate green on the updated PR.",
           "kind": "requirement",
-          "status": "unsupported",
+          "status": "supported",
           "boundary": [
-            "W5 workstream, TONIGHT-EXECUTION-PLAN-2026-10-08.md W5 Part 2; performed by a separate worker on chore/rename-cspec later tonight (2026-10-08)",
-            "PENDING at backfill time: no evidence is claimed for this claim yet"
+            "W5 workstream, TONIGHT-EXECUTION-PLAN-2026-10-08.md W5 Part 2; performed by a separate worker on chore/rename-cspec, commit f485f46 stacked on b994856",
+            "Was PENDING / unsupported in assessment runs 1-4 (evidence genuinely absent then); updated and re-assessed after the evidence landed the same night"
           ],
           "depends_on": [
             "EVAL-001",
@@ -902,12 +907,23 @@
           "conflicts_with": [],
           "evidence": [
             {
-              "ref": "coordinator workspace hidden_files/chrono-program/ listing, 2026-10-08",
-              "kind": "unsupported",
-              "direction": "context",
-              "source_quality": "secondary",
-              "description": "Checked 2026-10-08 evening EDT during this backfill: the coordinator-workspace directory hidden_files/chrono-program/w5-evidence/ does not exist, and chore/rename-cspec has no re-vendor commit beyond the W2 fix d77fb2e. Evidence is pending, not absent-by-conclusion; this claim must be re-assessed when W5 lands.",
-              "source_id": "w5-evidence-absent-2026-10-08",
+              "ref": "layer1labs/chronohive-eval commit f485f46382de2ff67e6aa1c9f9b63bb448fd3f47 on chore/rename-cspec, 2026-10-08",
+              "kind": "observed",
+              "direction": "supports",
+              "source_quality": "primary",
+              "description": "Commit f485f46 on chore/rename-cspec: chronoc rebuilt from layer1labs/chronohive-toolchain at feat/lower-model head c5b822f and replaced in place; the build is reproducible and byte-identical to the prior pin (SHA-256 ab12076b76c095438b43b56ff71dc38db783c5fc988ce61b8caf396db89281e1 unchanged), so the commit records verified provenance in toolchain/README.md only. W5 local verification: scripts/check.py ALL CHECKS PASSED; compile_client.py --local reproduces lf/IoCoordinator.cspec.reference byte-identically.",
+              "source_id": "w5-revendor-f485f46",
+              "independent_of": [],
+              "observed_at": null,
+              "content_hash": null
+            },
+            {
+              "ref": "gh pr checks 12, run 37867137348; hidden_files/chrono-program/w5-evidence/clean-room-transcript.txt",
+              "kind": "observed",
+              "direction": "supports",
+              "source_quality": "test",
+              "description": "PR #12 CI green at f485f46: repo gate, pdf + diagram freshness, and docker toolbox all pass. W5 clean-room transcript (install -> chrono new -> build -> run) on file in the coordinator workspace.",
+              "source_id": "w5-evidence-2026-10-08",
               "independent_of": [],
               "observed_at": null,
               "content_hash": null
@@ -921,12 +937,12 @@
             "CI is red on chore/rename-cspec after the re-vendor commit",
             "The re-vendor is performed by text-sweeping the repo instead of replacing the binary"
           ],
-          "uncertainty": "insufficient_evidence",
+          "uncertainty": "low",
           "severity": "medium",
           "source_ref": "spec.md#EVAL-007",
           "domain": "",
-          "confidence": 0.25,
-          "confidence_band": "low",
+          "confidence": 1.0,
+          "confidence_band": "high",
           "failures": [
             {
               "id": "AEE-EVAL-007-IRREDUCIBILITY-CHALLENGE",
@@ -1029,20 +1045,17 @@
         },
         "EVAL-007": {
           "claim_id": "EVAL-007",
-          "direct_score": 0.25,
-          "propagated_score": 0.25,
-          "band": "low",
+          "direct_score": 1.0,
+          "propagated_score": 1.0,
+          "band": "high",
           "components": {
-            "evidence": 0.0,
-            "independence": 0.0,
+            "evidence": 1.0,
+            "independence": 1.0,
             "falsifiability": 1.0,
             "boundary": 1.0,
             "contradiction_penalty": 0
           },
-          "notes": [
-            "No supporting evidence",
-            "Fewer than two independent supporting sources"
-          ]
+          "notes": []
         }
       },
       "recoveries": [

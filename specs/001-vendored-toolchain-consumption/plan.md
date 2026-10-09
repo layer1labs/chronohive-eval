@@ -66,7 +66,9 @@ Supporting pieces:
   `b994856` before push and EVAL-003/EVAL-004/EVAL-006 were updated to the new
   head. W5 pushes the re-vendor to the same branch later tonight;
   GitHub retargets the diff automatically since the base is the same
-  branch, and EVAL-007 must be updated when it lands. Note `d77fb2e`
+  branch. (Update: the W5 re-vendor landed as `f485f46` later the
+  same night — byte-identical binary, provenance recorded; EVAL-007
+  was updated to supported and re-assessed. See spec EVAL-007.) Note `d77fb2e`
   left `pdf/ChronoHive-LF-Toolchain.pdf` stale (CI pdf-freshness red
   on PR #12, run 37866176424); the base-branch line closed it with
   `b994856` (PDF regenerated), so this PR stacks on `b994856`.

@@ -37,14 +37,16 @@ merge hold / Gate G.
 
 ## In flight tonight
 
-- [ ] T006 — W5 re-vendor: replace vendored chronoc with the renamed
-  toolchain build on `chore/rename-cspec`, refresh pins/hashes in
-  `toolchain/README.md`, run the eval gate. Owner: W5 worker (separate
-  worker, pushes to the base branch of this PR tonight). Evidence:
-  transcript in coordinator workspace
-  `hidden_files/chrono-program/w5-evidence/` — ABSENT at backfill time
-  (checked 2026-10-08 evening EDT); claims EVAL-007 stays
-  `unsupported` / `insufficient_evidence` until it lands.
+- [x] T006 — W5 re-vendor: DONE by the W5 worker (separate worker,
+  pushed to the base branch of this PR). Commit `f485f46` on
+  `chore/rename-cspec`: chronoc rebuilt from toolchain
+  `feat/lower-model` `c5b822f`, replaced in place, byte-identical to
+  the prior pin (SHA-256 `ab12076b…` unchanged), provenance recorded
+  in `toolchain/README.md`; local gate ALL CHECKS PASSED; reference
+  reproduced byte-identically; PR #12 CI green at `f485f46` (run
+  37867137348). Evidence: `hidden_files/chrono-program/w5-evidence/
+  clean-room-transcript.txt` (absent at backfill time, landed during
+  the night). EVAL-007 updated to supported and re-assessed.
 - [x] T007 — W2 rename-residue audit for this repo: CLOSED for eval.
   Audit on file (`w2-evidence/audit-summary.txt` + per-pattern files):
   at `35727d1` exactly two `.chb` lines — one live residue
