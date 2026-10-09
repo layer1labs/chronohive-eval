@@ -19,6 +19,7 @@ branches moved during the night:
 | 3 | 00:51:10Z | clarify | EVAL-005, EVAL-007 | PDF follow-up `b994856` landed; branch rebased |
 | 4 | 00:52:54Z | iterate | EVAL-007 | PR #11 fix `90f9922` closed the EVAL-005 `.cspec` gap; EVAL-005 → 0.9986 |
 | 5 | 00:59:56Z | iterate | **none** | W5 re-vendor `f485f46` landed with transcript; EVAL-007 → supported, 1.0 |
+| 6 | 09:37:56Z (2026-10-09) | iterate | **none** | Phase 2 N3 refresh on merged main `23a6d99`: EVAL-006 gained post-merge main-CI evidence; all other claims unchanged; outcome and confidences unchanged (see Refresh section below) |
 
 ## Command
 
@@ -89,3 +90,43 @@ gate would be a blocker — this gate RAN, five times, with the final
 run committed). The remaining flags are decomposition suggestions
 for a future spec-001 refinement, not evidence gaps: every claim is
 now at or above threshold with observed evidence on file.
+
+---
+
+## Refresh 2026-10-09 (Phase 2 N3, run 6, on merged main 23a6d99)
+
+Re-run with the identical command as above on the CURRENT merged
+main (this repo's main IS the run-5 state, merged as PR #13).
+Claims change (claims.json, this PR): EVAL-006 gained one evidence
+entry — post-merge main CI, final push run SUCCESS on all three
+jobs (ARCHITECTURE-REVIEW-PACKAGE.md §7). No other claim was
+changed; every claim was already `supported` on landed evidence.
+
+New outputs alongside the run-5 record (nothing above rewritten):
+
+- `aee-after_specify-20261009T093756Z.json` — rich AEE assessment
+- `evaluator-after_specify-20261009T093756Z.json` — Evaluator
+  Contract result
+- `aee gate` on the new assessment returns `iterate` (exit 1).
+- Ledger chain re-verified valid (3 entries: runs 4, 5, and this
+  refresh).
+
+Outcome: **`iterate` (unchanged)** — verbatim summary: "Assessed 7
+claim(s); found 15 failure mode(s); 0 claim(s) below the 0.70
+confidence threshold." Per-claim confidences identical to run 5
+(EVAL-001…004/006/007 1.0, EVAL-005 0.9986).
+
+Items closed by evidence: none outstanding — no claim was below
+threshold in run 5 or in this refresh; the refresh confirms the
+record against the merged main and adds the post-merge CI source
+to EVAL-006.
+
+Items carried as follow-ups (unchanged, preserved — not collapsed):
+the 15 heuristic failure modes — 7 `IRREDUCIBILITY-CHALLENGE`
+coverage gaps (one per claim) and 8 `NEGATION-CONFLICT-CHALLE…`
+contradiction flags (deterministic heuristic pairings over shared
+negation vocabulary; no discriminating evidence of actual
+contradictions, per the run-5 analysis above). Decomposing claims
+to silence the heuristic remains a possible future tidy, not a
+correctness gap; the claims were not rewritten to chase a cleaner
+score.

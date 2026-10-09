@@ -220,6 +220,14 @@
           "ref": "gh run view 37866176424 --log-failed and commit b994856, layer1labs/chronohive-eval, 2026-10-08",
           "source_id": "ci-pr12-pdf-fail-d77fb2e",
           "source_quality": "test"
+        },
+        {
+          "description": "Post-merge main CI: PR #13 merged at 23a6d99 (current main); the final push run is SUCCESS on all three jobs (repo gate, pdf + diagram freshness, docker toolbox) per ARCHITECTURE-REVIEW-PACKAGE.md section 7.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "ARCHITECTURE-REVIEW-PACKAGE.md section 7, chronohive-eval merge train record",
+          "source_id": "postmerge-main-ci-2026-10-09",
+          "source_quality": "primary"
         }
       ],
       "falsification_tests": [
