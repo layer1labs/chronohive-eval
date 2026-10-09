@@ -28,7 +28,7 @@ Source integrity (the compiler embeds this hash in every specification it emits)
 
 ```
 sha256sum lf/IoCoordinator.lf
-# b71fb3fbaaac0eac7d2181f6651462d1324056b77780283a593569ac9373bf87
+# 722970549e19eada4f955c5a519b8bf2c151dab400633c8e8e77c4aaa08f4a16
 ```
 
 ## Compiling

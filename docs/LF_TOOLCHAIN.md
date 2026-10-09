@@ -84,7 +84,7 @@ Env overrides: `CHRONOC=<path>`, `LFC=<path>`, `JAVA_HOME=<path>`.
 (`PrefetchIO`).
 
 - Source SHA-256:
-  `b71fb3fbaaac0eac7d2181f6651462d1324056b77780283a593569ac9373bf87`
+  `722970549e19eada4f955c5a519b8bf2c151dab400633c8e8e77c4aaa08f4a16`
 - Verify: `sha256sum lf/IoCoordinator.lf`
 - Reference specification: `lf/IoCoordinator.cspec.reference` — the exact pinned-toolchain
   output for the checked-in source (`steps=200`, `storage_bw=100`),
