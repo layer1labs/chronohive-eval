@@ -83,7 +83,10 @@ merge hold / Gate G.
   the 0.70 threshold — both genuinely open items, T005/T006). Outputs
   in `assessments/` (copies) and `.specify/extensions/` (canonical),
   full record in `assessments/README.md`.
-- [ ] T012 — Verify CI on this PR via
+- [x] T012 — Verify CI on this PR via PR #13, head `0c9538d`:
+  ALL THREE JOBS PASS (run 37867072814 — repo gate, pdf + diagram
+  freshness, docker toolbox). (This checkbox commit itself triggers
+  one more CI run on the new head.) Original task text:
   `gh pr checks <n> --repo layer1labs/chronohive-eval` and record the
   result in the coordinator run state. Note: this branch was created
   from base head `35727d1` and REBASED onto `b994856` before push
