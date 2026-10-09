@@ -10,8 +10,8 @@
 
 # Binary artifacts: never normalize, never diff as text.
 # Constraint-specification files are binary artifacts
-# (.csf is the settled extension; .chb is its pre-rename name).
-*.csf binary
+# (.cspec is the settled extension; .chb is its pre-rename name).
+*.cspec binary
 *.chb binary
 *.png binary
 *.jpg binary
