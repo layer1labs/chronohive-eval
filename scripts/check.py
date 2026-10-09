@@ -58,7 +58,14 @@ BANNED_PATTERNS = [
 # Files the sweep reads (text sources shipped in the package).
 SWEEP_EXTENSIONS = {".py", ".md", ".sh", ".lf", ".json", ".yml", ".yaml",
                     ""}  # "" covers extensionless files like Dockerfile
-SWEEP_SKIP_DIRS = {".git", "__pycache__", ".vscode"}
+# ".specify" is spec-kit/AEE tooling scaffolding (spec 001 backfill,
+# 2026-10-08): third-party tool content, not shipped package sources, so
+# the branding/header sweeps do not apply to it. Same for the spec-kit
+# generated agent skills under .github/skills (SWEEP_SKIP_PREFIXES).
+# Our own specs/ tree is NOT skipped — it is package content and must
+# pass both sweeps.
+SWEEP_SKIP_DIRS = {".git", "__pycache__", ".vscode", ".specify"}
+SWEEP_SKIP_PREFIXES = {os.path.join(".github", "skills")}
 # This script itself is skipped: it assembles the forbidden patterns it
 # enforces (the assembly is the enforcement mechanism, not a violation).
 SWEEP_SKIP_FILES = {"rfc8032_test_vectors.json", "check.py"}
@@ -139,6 +146,12 @@ def check_ed25519() -> None:
 def _iter_sweep_files():
     for root, dirs, names in os.walk(REPO_ROOT):
         dirs[:] = [d for d in dirs if d not in SWEEP_SKIP_DIRS]
+        rel_root = os.path.relpath(root, REPO_ROOT)
+        if rel_root in SWEEP_SKIP_PREFIXES or any(
+                rel_root.startswith(p + os.sep)
+                for p in SWEEP_SKIP_PREFIXES):
+            dirs[:] = []
+            continue
         for name in sorted(names):
             if name in SWEEP_SKIP_FILES or name.endswith(".cspec.reference"):
                 continue

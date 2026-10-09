@@ -1,0 +1,280 @@
+{
+  "claims": [
+    {
+      "boundary": [
+        "layer1labs/chronohive-eval, branch chore/rename-cspec (PR #12) at 35727d1",
+        "Linux x86_64 pin only; other platforms use the documented CHRONOC= override"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "SHA-256 and --version re-verified on disk during this backfill (2026-10-08): sha256sum ab12076b76c095438b43b56ff71dc38db783c5fc988ce61b8caf396db89281e1 matches toolchain/README.md; --version prints chronoc 0.1.0-alpha.1.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "local verification in the backfill clone at 35727d1, 2026-10-08",
+          "source_id": "w0v-pin-verify-2026-10-08",
+          "source_quality": "test"
+        },
+        {
+          "description": "PR #12 replaced the binary wholesale for the rename (849,888 -> 1,528,304 bytes) and updated the provenance + SHA-256 in toolchain/README.md.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "layer1labs/chronohive-eval PR #12 diff stat and body, head 35727d1",
+          "source_id": "pr12-35727d1",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "sha256sum toolchain/chronoc-linux-x86_64 differs from ab12076b76c095438b43b56ff71dc38db783c5fc988ce61b8caf396db89281e1 (the toolchain/README.md record)",
+        "toolchain/chronoc-linux-x86_64 --version reports anything other than chronoc 0.1.0-alpha.1 for this pin",
+        "A commit modifies the vendored binary by text edit or line-ending conversion instead of wholesale replacement"
+      ],
+      "id": "EVAL-001",
+      "kind": "requirement",
+      "source_ref": "spec.md#EVAL-001",
+      "status": "supported",
+      "text": "The repo vendors exactly one chronoc binary, toolchain/chronoc-linux-x86_64, version 0.1.0-alpha.1, SHA-256 ab12076b76c095438b43b56ff71dc38db783c5fc988ce61b8caf396db89281e1, with version, hash, and provenance recorded in toolchain/README.md; a re-vendor replaces the binary wholesale and updates the recorded pin, and the binary is never patched or text-swept.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "Linux x86_64 fetch pin; other platforms exit 2 with instructions to supply LFC= explicitly",
+        "Claim covers the fetch script and the default compile-path resolution, not manually supplied LFC= overrides"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "scripts/fetch-lfc.sh read in full during this backfill: LFC_VERSION=0.13.0, LFC_SHA256 pinned, sha256sum -c gate before tar extraction, explicit refusal message and exit 1 on mismatch, idempotent skip when the pinned binary is present.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "scripts/fetch-lfc.sh at 35727d1",
+          "source_id": "fetch-lfc-source",
+          "source_quality": "primary"
+        },
+        {
+          "description": "CI installs lfc through the same script on every PR (install pinned JRE + lfc step runs bash scripts/fetch-lfc.sh) and the repo-gate and docker jobs pass on PR #11 and PR #12 heads.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": ".github/workflows/ci.yml at 35727d1; CI runs 37852282519 (PR #11) and 37863896647 (PR #12)",
+          "source_id": "ci-runs-2026-10-08",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "scripts/fetch-lfc.sh unpacks a tarball whose SHA-256 does not match 175784319935e388a5ebe44f33dc4e3367eed9f24d071c82af8b50afe013a1c2",
+        "The default compile path (scripts/compile_lf.sh with no LFC= override) uses an unpinned or different-version lfc",
+        "The fetched lfc tree is committed to the repo instead of gitignored"
+      ],
+      "id": "EVAL-002",
+      "kind": "requirement",
+      "source_ref": "spec.md#EVAL-002",
+      "status": "supported",
+      "text": "lfc v0.13.0 is obtained only via scripts/fetch-lfc.sh, which verifies SHA-256 175784319935e388a5ebe44f33dc4e3367eed9f24d071c82af8b50afe013a1c2 before unpacking, refuses to unpack on mismatch, and installs under toolchain/lf-cli-0.13.0-Linux-x86_64/ (gitignored).",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "Checked-in project lf/IoCoordinator.lf with --capacity storage_bw=100, as exercised by CI",
+        "Byte-identity is claimed for the reference project, not for arbitrary LF sources"
+      ],
+      "conflicts_with": [],
+      "depends_on": [
+        "EVAL-001",
+        "EVAL-002"
+      ],
+      "evidence": [
+        {
+          "description": "CI on PR #12: at head 35727d1 all three jobs pass including the cmp steps (run 37863896647); at current head d77fb2e, repo gate and docker toolbox pass including the cmp steps, pdf + diagram freshness fails on an unrelated stale PDF (see EVAL-006).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "gh pr checks 12 --repo layer1labs/chronohive-eval, runs 37863896647 and 37866176424, 2026-10-08",
+          "source_id": "ci-pr12-runs",
+          "source_quality": "test"
+        },
+        {
+          "description": "Reference artifact at current PR #12 head d77fb2e: lf/IoCoordinator.cspec.reference, SHA-256 a7b685e16a3f9892fc16ceb56a114609a614b5a35327815b022ce830fbad76d7, 3,308 bytes (regenerated by the W2 fix d77fb2e through the real pinned lfc gate; at 35727d1 it was 927325b792f390d80fdbc63f33d553b03953526637c94d330ec395b178b53884).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "git show origin/chore/rename-cspec:lf/IoCoordinator.cspec.reference | sha256sum, 2026-10-08",
+          "source_id": "w0v-ref-hash-d77fb2e",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A local compile output differs from lf/IoCoordinator.cspec.reference (cmp non-zero) in plain CI or in the Docker toolbox image",
+        "Compilation succeeds on a source the pinned lfc v0.13.0 rejects"
+      ],
+      "id": "EVAL-003",
+      "kind": "requirement",
+      "source_ref": "spec.md#EVAL-003",
+      "status": "supported",
+      "text": "The local compile path (scripts/compile_lf.sh and clients/compile_client.py --local) compiles lf/IoCoordinator.lf through the pinned lfc gate and the vendored chronoc to a .cspec byte-identical to the checked-in reference lf/IoCoordinator.cspec.reference.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "PR #12 head at rebase time: b994856 (branched from 35727d1, rebased after the W2 fix d77fb2e and its PDF follow-up b994856 landed); the branch tip may move again tonight (W5 re-vendor)",
+        "Historical and pre-rename records mentioning .chb/CHB1 are out of scope; live code, scripts, CI, and docs are in scope"
+      ],
+      "conflicts_with": [],
+      "depends_on": [
+        "EVAL-001",
+        "EVAL-003"
+      ],
+      "evidence": [
+        {
+          "description": "PR #12 diff: 21 files changed; toolchain binary replaced; lf/IoCoordinator.chb.reference renamed to IoCoordinator.cspec.reference (3,286 -> 3,308 bytes); compile client, scripts, CI, Dockerfile, docs swept; diagrams/PDFs regenerated. CI all-pass on head 35727d1 (run 37863896647).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "layer1labs/chronohive-eval PR #12, head 35727d1, CI run 37863896647",
+          "source_id": "pr12-35727d1",
+          "source_quality": "primary"
+        },
+        {
+          "description": "W2 rename-residue audit for this repo (audit-summary.txt + per-pattern files): at 35727d1 exactly two .chb lines \u2014 one live residue (lf/IoCoordinator.lf header comment) and one historical toolchain/README.md note (out of scope). The live residue was fixed by W2 commit d77fb2e on the base branch, which regenerated the reference through the real pinned lfc 0.13.0 gate and updated source SHA-256 pins; repo gate + docker pass at d77fb2e (run 37866176424).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "coordinator workspace hidden_files/chrono-program/w2-evidence/audit-summary.txt (chronohive-eval chore/rename-cspec @ 35727d1) and commit d77fb2e, 2026-10-08",
+          "source_id": "w2-audit-eval-d77fb2e",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Any live (non-historical) .chb, CHB1, .csf, or CSF1 reference remains in code, scripts, CI, or docs on the final PR #12 head (W2 grep audit)",
+        "clients/compile_client.py accepts an artifact whose magic is CHB1",
+        "The checked-in reference artifact is still named with a .chb extension"
+      ],
+      "id": "EVAL-004",
+      "kind": "requirement",
+      "source_ref": "spec.md#EVAL-004",
+      "status": "supported",
+      "text": "PR #12 applies the .chb/CHB1 -> .cspec/CSP1 rename to this repo: vendored chronoc is the renamed toolchain build, the reference artifact is renamed and regenerated via the pinned toolchain + real lfc gate (lf/IoCoordinator.cspec.reference, 3,308 bytes), the compile client verifies CSP1 and the v1 meta layout including lf_target, and scripts, CI, Dockerfile, and docs are swept.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "PR #11 branch chore/gitattributes: ca0b709 at backfill start, current head 90f9922 (W2 fix); it is a separate held branch, not an ancestor of chore/rename-cspec",
+        "Observed gap at ca0b709 (binary list named *.csf/*.chb, not *.cspec) was closed on the PR #11 line by 90f9922 \u2014 see evidence"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "PR #11 diff is .gitattributes only (33 insertions): * text=auto eol=lf, *.bat/*.cmd CRLF, *.sh LF, binary list, and -text for toolchain/chronoc-linux-x86_64 and toolchain/lf-cli-*/**. PR body records the renormalize check touched zero files. CI all-pass on head ca0b709.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "layer1labs/chronohive-eval PR #11, head ca0b709, CI run 37852282519",
+          "source_id": "pr11-ca0b709",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Gap found by this backfill at ca0b709 (binary list named *.csf and *.chb, no *.cspec) and closed the same night on the PR #11 line by W2 commit 90f9922: *.csf binary replaced by *.cspec binary, comment corrected to name .cspec the settled extension (covers lf/*.cspec.reference). Current PR #11 head is 90f9922. CI all-pass on 90f9922 (run 37866885547).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "git show 90f9922 (chore/gitattributes), 2026-10-08; earlier gap read via git show origin/chore/gitattributes:.gitattributes at ca0b709",
+          "source_id": "w2-gitattributes-fix-90f9922",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "git add --renormalize . on the PR #11 branch modifies any file",
+        "A checkout on any platform changes the SHA-256 of toolchain/chronoc-linux-x86_64",
+        ".gitattributes is absent once PR #11 merges, or its merged form lacks a *.cspec binary entry"
+      ],
+      "id": "EVAL-005",
+      "kind": "requirement",
+      "source_ref": "spec.md#EVAL-005",
+      "status": "supported",
+      "text": "PR #11 adds the standard Chrono .gitattributes to this repo: LF line endings by default, CRLF only for *.bat/*.cmd, *.sh pinned LF, binary artifacts marked binary, and vendored payloads protected with -text (toolchain/chronoc-linux-x86_64 and toolchain/lf-cli-*/**); renormalization touched zero files.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "CI state as read 2026-10-08 for PR #11 (ca0b709) and PR #12 (35727d1) held heads"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "gh pr checks 11 and gh pr checks 12 on 2026-10-08: all three jobs (repo gate, pdf + diagram freshness, docker toolbox) pass on PR #11 heads ca0b709 and 90f9922 and on PR #12 head 35727d1.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "CI runs 37852282519 and 37866885547 (PR #11), 37863896647 (PR #12)",
+          "source_id": "ci-runs-2026-10-08",
+          "source_quality": "test"
+        },
+        {
+          "description": "scripts/check.py structure read during this backfill: byte-compilation, RFC 8032 ed25519 vectors, branding/header sweeps, compile-client checks including reference-blob verification, negative paths, tracked-artifact and secret-hygiene checks, ending in ALL CHECKS PASSED.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "scripts/check.py at 35727d1",
+          "source_id": "check-py-source",
+          "source_quality": "primary"
+        },
+        {
+          "description": "At PR #12 head d77fb2e the pdf + diagram freshness job FAILED (run 37866176424), catching exactly one stale artifact \u2014 pdf/ChronoHive-LF-Toolchain.pdf \u2014 left stale by the W2 commit changing docs/LF_TOOLCHAIN.md without regenerating PDFs: the gate working as designed. The base-branch line closed it the same night with b994856 (PDF regenerated via scripts/make_pdfs.py), current PR #12 head, CI run 37866636846.",
+          "direction": "context",
+          "kind": "observed",
+          "ref": "gh run view 37866176424 --log-failed and commit b994856, layer1labs/chronohive-eval, 2026-10-08",
+          "source_id": "ci-pr12-pdf-fail-d77fb2e",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "CI is red on a held PR head while the work on that head is claimed done",
+        "scripts/check.py passes while the reference specification fails its CSP1 structure verification",
+        "A gate is bypassed or a check removed to make a change pass"
+      ],
+      "id": "EVAL-006",
+      "kind": "requirement",
+      "source_ref": "spec.md#EVAL-006",
+      "status": "supported",
+      "text": "Every change to this repo is gated by scripts/check.py (ALL CHECKS PASSED) and CI (.github/workflows/ci.yml: repo gate, project-to-specification byte-identical proof in CI and in the Docker toolbox, PDF/diagram freshness); a change is not done while its PR head is CI-red.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "W5 workstream, TONIGHT-EXECUTION-PLAN-2026-10-08.md W5 Part 2; performed by a separate worker on chore/rename-cspec, commit f485f46 stacked on b994856",
+        "Was PENDING / unsupported in assessment runs 1-4 (evidence genuinely absent then); updated and re-assessed after the evidence landed the same night"
+      ],
+      "conflicts_with": [],
+      "depends_on": [
+        "EVAL-001",
+        "EVAL-006"
+      ],
+      "evidence": [
+        {
+          "description": "Commit f485f46 on chore/rename-cspec: chronoc rebuilt from layer1labs/chronohive-toolchain at feat/lower-model head c5b822f and replaced in place; the build is reproducible and byte-identical to the prior pin (SHA-256 ab12076b76c095438b43b56ff71dc38db783c5fc988ce61b8caf396db89281e1 unchanged), so the commit records verified provenance in toolchain/README.md only. W5 local verification: scripts/check.py ALL CHECKS PASSED; compile_client.py --local reproduces lf/IoCoordinator.cspec.reference byte-identically.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "layer1labs/chronohive-eval commit f485f46382de2ff67e6aa1c9f9b63bb448fd3f47 on chore/rename-cspec, 2026-10-08",
+          "source_id": "w5-revendor-f485f46",
+          "source_quality": "primary"
+        },
+        {
+          "description": "PR #12 CI green at f485f46: repo gate, pdf + diagram freshness, and docker toolbox all pass. W5 clean-room transcript (install -> chrono new -> build -> run) on file in the coordinator workspace.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "gh pr checks 12, run 37867137348; hidden_files/chrono-program/w5-evidence/clean-room-transcript.txt",
+          "source_id": "w5-evidence-2026-10-08",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "No W5 re-vendor transcript is on file in hidden_files/chrono-program/w5-evidence/ after the tonight run closes",
+        "After the re-vendor, the toolchain/README.md hash does not match the re-vendored toolchain/chronoc-linux-x86_64",
+        "CI is red on chore/rename-cspec after the re-vendor commit",
+        "The re-vendor is performed by text-sweeping the repo instead of replacing the binary"
+      ],
+      "id": "EVAL-007",
+      "kind": "requirement",
+      "source_ref": "spec.md#EVAL-007",
+      "status": "supported",
+      "text": "Tonight's W5 re-vendor replaces this repo's vendored chronoc with the renamed toolchain build (binary replacement only), refreshes the pins/hashes in toolchain/README.md to match the new binary, and leaves the eval gate green on the updated PR.",
+      "uncertainty": "low"
+    }
+  ],
+  "schema_version": "1.0"
+}
