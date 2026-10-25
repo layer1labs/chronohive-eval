@@ -466,7 +466,7 @@ and request bodies are never logged.
 
 | Version | Changes |
 |---------|---------|
-| 0.1.0 (pre-release) | Initial eval API; TOC execution gate (`/v1/toc`, `/v1/toc/accept`, 403 gating); `/v1/lf/compile` (complete-project file map, license-gated); `/v1/admission/compare` (kernel-real coordination comparison); per-request usage logging |
+| 0.1.0 | Initial eval API; TOC execution gate (`/v1/toc`, `/v1/toc/accept`, 403 gating); `/v1/lf/compile` (complete-project file map, license-gated); `/v1/admission/compare` (kernel-real coordination comparison); per-request usage logging |
 
 Check `GET /v1/health` for the version your deployment serves.
 
