@@ -1,10 +1,8 @@
 # ChronoHive Evaluation Package
 
 > © 2026 Layer1Labs Silicon Inc. All rights reserved.
-> **CONFIDENTIAL — PROPRIETARY.** This package and its contents are
-> provided solely for evaluation under the ChronoHive Terms of
-> Confidentiality (`TOC.md`) and the ChronoHive Evaluation License
-> (`LICENSE`). **Do not distribute, copy, or publicly host.**
+
+**A note on what this package is.** This repository is Layer1Labs' public evaluator package, published openly so that prospective evaluators can read the evaluation terms, the API documentation, and the worked example before requesting an Evaluation License. Access to the hosted evaluation API is governed by the Terms of Confidentiality (`TOC.md`) and the ChronoHive Evaluation License (`LICENSE`) in this repository. This is a client package: it contains no engine source code, and the specifics of any individual evaluation relationship are not part of this package.
 
 Evaluate ChronoHive's storage-admission capability. This is a
 **client package**: Python clients and tools that drive the hosted
